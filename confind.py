@@ -43,8 +43,6 @@ def generate_table():
     l.extend(al)
     return l
 
-            
-
 def diversify(d) -> list[list[float, str]]: # c for constant and constant is for me
     '''
     Returns a list of lists of c with unary operations applied.
@@ -93,20 +91,32 @@ def diversify(d) -> list[list[float, str]]: # c for constant and constant is for
 
     return al
 
-
-def confind(whatnum:int = None, whatref:str = None) -> list[list[int, float, str]]:
+def confind(whatnum:float = False, whatref:str = False) -> list[list[int, float, str]]:
     '''
     Returns a list of results matching the query entered. 
 
-    confind() should only be used with one argument at a time, the other argument should be type None.
+    confind() should only be used with one argument at a time, the other argument should be False.
     ex: findmynumber = confind(6.28, None)
     ex: findmyref = confind(None, 'pi*2')
     '''
     if whatref:
-        results = figs.Query.order_by(num = whatnum).all()
+        results = figs.query.filter_by(num=whatnum).all()
     elif whatnum:
-        results = figs.Query.order_by(ref = whatref).all()
+        results = figs.query.filter_by(ref=whatref).all()
+    else:
+        results = ['bingus']
     return results
+
+def inittable():
+    newtable = True
+    if newtable:
+        vals = generate_table()
+        for i in vals:
+            b = figs(i[0], i[1])
+            db.session.add(b)
+            print(f'{i[1]} = {i[0]}')
+        db.session.commit
+    return
 
 if __name__ == "__main__":
     '''print(figs.query().first)
@@ -114,7 +124,11 @@ if __name__ == "__main__":
     if figs.query().first():
         print("<confind> Table [figs] is not empty. Please empty [figs] table to generate new table.")
     else:'''
-    vals = generate_table()
-    for i in vals:
-        print(f'{i[1]} = {i[0]}')
-    
+    newtable = False
+    if newtable:
+        vals = generate_table()
+        for i in vals:
+            b = figs(i[0], i[1])
+            db.session.add(b)
+            print(f'{i[1]} = {i[0]}')
+        db.session.commit

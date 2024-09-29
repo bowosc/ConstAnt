@@ -3,6 +3,16 @@
 </header>
 <body style="text-align: center;">
     <p>------------</p>
+    <form action="#" method="post">
+        <input name="searchbar" type="text" autocomplete="off" placeholder="rock a numbah...">
+        <input name="submit" type="submit">
+    </form>
     <h3>Results:</h3>
-    <p>{{results}}</p>
+    {% if results %}
+        {% for result in results %}
+            <p>{{result}}</p>
+        {% endfor %}
+    {% else %}
+        <p> No results </p>
+    {% endif %}
 </body>
