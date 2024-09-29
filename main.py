@@ -1,6 +1,6 @@
 from flask import Flask
 from flask import render_template, redirect, request, url_for, flash
-from confind import confind
+import confind
 
 app = Flask(__name__)
 app.secret_key = "password"
@@ -17,4 +17,6 @@ def homepage():
     return render_template('home.html', results=results)
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    with app.app_context():
+        confind.db.create_all()
+    app.run(debug=True, host= '0.0.0.0')
