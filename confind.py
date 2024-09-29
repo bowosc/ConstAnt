@@ -18,7 +18,7 @@ class figs(db.Model):
 
 def generate_table(): 
     
-    constants = [math.pi, math.e, sqrttwo, sqrtthree, phi, -6, -5, -4, -3, -2, -1, 1/2, 1/3, 1/4, 1/5, 1/6, 1, 2, 3, 4, 5, 6] 
+    constants = ["pi", "e", "sqrttwo", "sqrtthree", "phi", -6, -5, -4, -3, -2, -1, "1/2", "1/3", "1/4", "1/5", "1/6", 1, 2, 3, 4, 5, 6] 
     
     l = []
 
@@ -45,34 +45,34 @@ def generate_table():
 
             
 
-def diversify(c: float) -> list[list[float, str]]: # c for constant and constant is for me
+def diversify(d) -> list[list[float, str]]: # c for constant and constant is for me
     '''
     Returns a list of lists of c with unary operations applied.
     Sublist format: [sin(c), 'sin({c})']
     '''
     al = []
-    d = c
-    '''match c:
-        case math.pi: 
-            d = "pi"
-        case math.e:
-            d = "e"
-        case phi:
-            d = "phi"
-        case math.sqrt(2):
-            d = "sqrt(2)"
-        case math.sqrt(3):
-            d = "sqrt(3)"
-        case 0.5:
-            d = "1/2"
-        case 1/3:
-            d = "1/3"
-        case 1/4:
-            d = "1/4"
-        case 1/5:
-            d = "1/5"
-        case 1/6:
-            d = "1/6"'''
+    c = d
+    match d:
+        case "pi": 
+            c = math.pi
+        case "e":
+            c = math.e
+        case "phi":
+            c = phi
+        case "sqrttwo":
+            c = sqrttwo
+        case "sqrtthree":
+            c = sqrtthree
+        case "1/2":
+            c = 1/2
+        case "1/3":
+            c = 1/3
+        case "1/4":
+            c = 1/4
+        case "1/5":
+            c = 1/5
+        case "1/6":
+            c = 1/6
 
     al.append([c, f'{d}'])
     al.append([math.sin(c), f'sin({d})']) # add options for radians
