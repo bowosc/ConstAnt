@@ -13,12 +13,13 @@ def homepage():
     if request.method == 'POST':
         if request.form['searchbar'] != None:
             results = confind.confind(request.form['searchbar'], False)
+            print(results)
     else:
         results = ''
-        confind.inittable()
+        '''confind.inittable()
         z = confind.figs.query.order_by().all()
         for i in z:
-            print(i.num)
+            print(i.num)'''
     return render_template('home.html', results=results)
 
 if __name__ == "__main__":
@@ -31,7 +32,7 @@ if __name__ == "__main__":
         for i in vals:
             b = confind.figs(i[0], i[1])
             confind.db.session.add(b)
-            print(f'{i[1]} = {i[0]}')
-        confind.db.session.commit'''
+            print(f'{i[1]} = {i[0]}')''' #                                          figure out how to add constants to the stupid db
+        confind.db.session.commit
 
     app.run(debug=True, host= '0.0.0.0')

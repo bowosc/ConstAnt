@@ -18,7 +18,7 @@ class figs(db.Model):
 
 def generate_table(): 
     
-    constants = ["pi", "e", "sqrttwo", "sqrtthree", "phi", -6, -5, -4, -3, -2, -1, "1/2", "1/3", "1/4", "1/5", "1/6", 1, 2, 3, 4, 5, 6] 
+    constants = ["pi", "e", "sqrt(2)", "sqrt(3)", "phi", -6, -5, -4, -3, -2, -1, "1/2", "1/3", "1/4", "1/5", "1/6", 1, 2, 3, 4, 5, 6] 
     
     l = []
 
@@ -57,9 +57,9 @@ def diversify(d) -> list[list[float, str]]: # c for constant and constant is for
             c = math.e
         case "phi":
             c = phi
-        case "sqrttwo":
+        case "sqrt(2)":
             c = sqrttwo
-        case "sqrtthree":
+        case "sqrt(3)":
             c = sqrtthree
         case "1/2":
             c = 1/2
@@ -85,6 +85,9 @@ def diversify(d) -> list[list[float, str]]: # c for constant and constant is for
     
     if isinstance(c, int) and c > 0:
         al.append([math.factorial(c), f'{d}!'])
+    
+    if c > 0:
+        al.append([math.log(c, math.e), f'ln({d})'])
 
     '''for p in pows:
         l.append([math.pow(c, p), f'{c}^{p}'])'''
@@ -100,11 +103,18 @@ def confind(whatnum:float = False, whatref:str = False) -> list[list[int, float,
     ex: findmyref = confind(None, 'pi*2')
     '''
     if whatref:
-        results = figs.query.filter_by(num=whatnum).all()
+        results = figs.query.filter_by(ref=whatref).all().limit(10)
     elif whatnum:
-        results = figs.query.filter_by(ref=whatref).all()
+        results = figs.query.filter(figs.num.contains(whatnum)).order_by(figs.num).limit(10).all()
+        '''b = figs(whatnum, "bowie's number")
+        db.session.add(b)
+        db.session.commit()
+        results = figs.query.all()'''
+        if not results:
+            results = ['no rezzies']
     else:
-        results = ['bingus']
+        results = ['ERROR: No arguments parsed? Like why?']
+    
     return results
 
 def inittable():
@@ -115,7 +125,7 @@ def inittable():
             b = figs(i[0], i[1])
             db.session.add(b)
             print(f'{i[1]} = {i[0]}')
-        db.session.commit
+        db.session.commit()
     return
 
 if __name__ == "__main__":

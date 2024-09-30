@@ -10,7 +10,7 @@
     <h3>Results:</h3>
     {% if results %}
         {% for result in results %}
-            <p>{{result}}</p>
+            <p>{{result.ref}} = {{result.num}}</p>
         {% endfor %}
     {% else %}
         <p> No results </p>
