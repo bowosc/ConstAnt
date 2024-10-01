@@ -18,33 +18,47 @@ class figs(db.Model):
         self.ref = ref
 
 def generate_table(): 
-    
-    constants = ["pi", "e", "sqrt(2)", "sqrt(3)", "phi", -12, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, "1/2", "1/3", "1/4", "1/5", "1/6", 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] 
-    
-    l = []
+    '''
+    generate a mf table
+    '''
+    constants = ["pi", "e", "sqrt(2)", "sqrt(3)", "phi", "1/2", "1/3", "1/4", "1/5", "1/6", 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] 
 
+    l = []
     for c in constants: # apply unary operations
         l.extend(diversify(c))
+        print(f"diversified {c}")
     
+    l = binary_operations(l)
+    return l
+    
+def binary_operations(l):
     al = [] # altlist, so we don't screw up the for loop
     for i in l: # for item in that one list, apply binary operations
         for j in l:
-            print(f"{i}, {j}")
-            if i[0] * j[0] != i[0] and i[0] * j[0] != j[0]:
-                al.append([i[0] * j[0], f'{i[1]} * {j[1]}'])
-            if i[0] + j[0] != i[0] and i[0] + j[0] != j[0]:
-                al.append([i[0] + j[0], f'{i[1]} + {j[1]}'])
-            if i[0] - j[0] != i[0] and i[0] - j[0] != j[0]:
-                al.append([i[0] - j[0], f'{i[1]} - {j[1]}'])
-            if j[0] != 0:
-                if i[0] / j[0] != i[0] and i[0] / j[0] != j[0]:
-                    al.append([i[0] / j[0], f'{i[1]} / {j[1]}'])
+                #unreadable lol there's stuff here designed to stop random duplicates from appearing
             if i[0] > 0 and j[0] != 1 and j[0] != 0:
-                try:
-                    al.append([math.pow(i[0], j[0]), f'{i[1]} ^ {j[1]}'])
-                except OverflowError:
-                    print("too big lol")
-    
+                    try:
+                        print(i[0])
+                        al.append([math.pow(i[0], (1 / j[0])), f'{i[1]} ^ (1/{j[1]})'])
+                        al.append([math.pow(i[0], (-1 * j[0])), f'{i[1]} ^ (-{j[1]})'])
+                        al.append([math.pow(i[0], j[0]), f'{i[1]} ^ {j[1]}'])
+                    except OverflowError:
+                        print("too big lol")
+
+            if j[0] != 0 and i[0] != 0:
+                if i[0] * j[0] != i[0] and i[0] * j[0] != j[0]:
+                    al.append([i[0] * j[0], f'{i[1]} * {j[1]}'])
+                
+                if j[0] != i[0]:
+                    if j[0] != 0:
+                        if i[0] / j[0] != i[0] and i[0] / j[0] != j[0]:
+                            al.append([i[0] / j[0], f'{i[1]} / {j[1]}'])
+                            
+                    if i[0] + j[0] != i[0] and i[0] + j[0] != j[0]:
+                        al.append([i[0] + j[0], f'{i[1]} + {j[1]}'])
+
+                    if i[0] - j[0] != i[0] and i[0] - j[0] != j[0]:
+                        al.append([i[0] - j[0], f'{i[1]} - {j[1]}'])
     l.extend(al)
     return l
 
@@ -122,6 +136,11 @@ def confind(whatnum:float = False, whatref:str = False) -> list[list[int, float,
     return results
 
 def inittable():
+    '''
+    Generate values for the table, print em all out. 
+    DOES NOT CHECK IF TABLE IS FULL ALREADY! Don't run this function if your table is already populated.
+    No args needed B)
+    '''
     newtable = True
     if newtable:
         vals = generate_table()
