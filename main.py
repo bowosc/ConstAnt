@@ -8,8 +8,10 @@ TODO
 social medialization
 - login/account creation should probably be a seperate library at this point but idk
 expand DB to third level ops
-generation function should actually work
-search feature allows for containment or starting with 
+
+idiotproofing
+
+equationsolver
 
 '''
 app = Flask(__name__)
@@ -19,7 +21,7 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 
 @app.route("/", methods=['POST', 'GET'])
-def homepage():
+def home():
     query = None
     if request.method == 'POST':
         if request.form['searchbar'] != None:
@@ -28,6 +30,30 @@ def homepage():
     else:
         results = ['Search for a number up there ^^^']
     return render_template('home.html', results=results, query=query)
+
+@app.route("/newconst", methods=['POST', 'GET'])
+def newconst():
+    if request.method == 'POST':
+        if request.form['equation'] and request.form['username'] and request.form['notes'] and request.form['constantname']:
+            b = confind.add_user_const(request.form['username'], request.form['constantname'], request.form['equation'], request.form['notes'])
+            try:
+                a = int(b)
+            except TypeError:
+                flash(b)
+                print(f"{b} typeerrrroooorrrr in newconst() in main.py")
+                return redirect("/newconst")
+        else:
+            flash('Please fill in all fields to submit this form.', 'usererror')
+            return redirect("/newconst")
+    return render_template('newconst.html')
+
+@app.route("/constant/<id>", methods=['POST', 'GET'])
+def viewconst():
+    constdata = [] # take from confind
+    return render_template('viewconst', constdata = constdata)
+
+
+
 
 if __name__ == "__main__":
     with app.app_context():

@@ -9,3 +9,8 @@
 .centered {
     text-align: center
 }
+
+usererror {
+    color: red;
+    background-color: yellow;
+}

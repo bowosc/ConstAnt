@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block body %}
+<body class="centered">
+    <h1> Add your own constant! </h1>
+    <form action="#" method="post">
+        <br><input name="constantname" type="text" autocomplete="off" placeholder="Enter the name of your constant.">
+        <br><input name="equation" type="text" autocomplete="off" placeholder="Equation to find your constant. DO NOT WRITE YOUR CONSTANT HERE. ">
+        <br><input name="username" type="text" autocomplete="on" placeholder="Enter your name.">
+        <br><input name="notes" type="text" autocomplete="off" placeholder="Where would this constant be useful?">
+        <br><input name="submit" type="submit">
+    </form>
+</body>
+{% endblock %}

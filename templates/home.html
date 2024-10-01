@@ -1,7 +1,5 @@
-<header>
-    <h1 class="centered"> Home </h1>
-    <link rel="stylesheet" type="text/css" href="static/styles.css" />
-</header>
+{% extends "base.html" %}
+{% block body %}
 <body>
     <div class="centered">
         <p>------------</p>
@@ -20,8 +18,7 @@
             {% if results %}
 
                 {% for result in results %}
-
-                    {{result.ref}} = 
+                    [{{ result.name }}, by {{ result.creator }}] {{result.ref}} = 
                     <br>
                     <br>
                 {% endfor %}
@@ -51,3 +48,4 @@
         </div>  
     </div>
 </body>
+{% endblock %}
