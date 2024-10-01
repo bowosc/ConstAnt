@@ -1,5 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy, session
 import math
+from sqlalchemy import func
 
 db = SQLAlchemy()
 
@@ -18,7 +19,7 @@ class figs(db.Model):
 
 def generate_table(): 
     
-    constants = ["pi", "e", "sqrt(2)", "sqrt(3)", "phi", -6, -5, -4, -3, -2, -1, "1/2", "1/3", "1/4", "1/5", "1/6", 1, 2, 3, 4, 5, 6] 
+    constants = ["pi", "e", "sqrt(2)", "sqrt(3)", "phi", -12, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, "1/2", "1/3", "1/4", "1/5", "1/6", 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] 
     
     l = []
 
@@ -29,12 +30,16 @@ def generate_table():
     for i in l: # for item in that one list, apply binary operations
         for j in l:
             print(f"{i}, {j}")
-            al.append([i[0] * j[0], f'{i[1]} * {j[1]}'])
-            al.append([i[0] + j[0], f'{i[1]} + {j[1]}'])
-            al.append([i[0] - j[0], f'{i[1]} - {j[1]}'])
+            if i[0] * j[0] != i[0] and i[0] * j[0] != j[0]:
+                al.append([i[0] * j[0], f'{i[1]} * {j[1]}'])
+            if i[0] + j[0] != i[0] and i[0] + j[0] != j[0]:
+                al.append([i[0] + j[0], f'{i[1]} + {j[1]}'])
+            if i[0] - j[0] != i[0] and i[0] - j[0] != j[0]:
+                al.append([i[0] - j[0], f'{i[1]} - {j[1]}'])
             if j[0] != 0:
-                al.append([i[0] / j[0], f'{i[1]} / {j[1]}'])
-            if i[0] > 0:
+                if i[0] / j[0] != i[0] and i[0] / j[0] != j[0]:
+                    al.append([i[0] / j[0], f'{i[1]} / {j[1]}'])
+            if i[0] > 0 and j[0] != 1 and j[0] != 0:
                 try:
                     al.append([math.pow(i[0], j[0]), f'{i[1]} ^ {j[1]}'])
                 except OverflowError:
@@ -83,16 +88,18 @@ def diversify(d) -> list[list[float, str]]: # c for constant and constant is for
 
     al.append([math.atan(c), f'tan({d})'])
     
-    if isinstance(c, int) and c > 0:
-        al.append([math.factorial(c), f'{d}!'])
+    '''if isinstance(c, int) and c > 0:
+        al.append([math.factorial(c), f'{d}!'])'''
     
     if c > 0:
         al.append([math.log(c, math.e), f'ln({d})'])
 
-    '''for p in pows:
-        l.append([math.pow(c, p), f'{c}^{p}'])'''
-
     return al
+
+def does_table_exists():
+     if figs.query.order_by(figs.ref).limit(25).count() < 20: # check if there's anything in the db
+        inittable()
+
 
 def confind(whatnum:float = False, whatref:str = False) -> list[list[int, float, str]]:
     '''
@@ -103,13 +110,10 @@ def confind(whatnum:float = False, whatref:str = False) -> list[list[int, float,
     ex: findmyref = confind(None, 'pi*2')
     '''
     if whatref:
-        results = figs.query.filter_by(ref=whatref).all().limit(10)
+        results = figs.query.filter_by(ref=whatref).all().limit(50)
     elif whatnum:
-        results = figs.query.filter(figs.num.contains(whatnum)).order_by(figs.num).limit(10).all()
-        '''b = figs(whatnum, "bowie's number")
-        db.session.add(b)
-        db.session.commit()
-        results = figs.query.all()'''
+        results = figs.query.filter(figs.num.startswith(whatnum)).order_by(figs.num).limit(50).all()
+
         if not results:
             results = ['no rezzies']
     else:

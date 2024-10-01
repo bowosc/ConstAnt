@@ -1,18 +1,53 @@
 <header>
-    <h1> Home </h1>
+    <h1 class="centered"> Home </h1>
+    <link rel="stylesheet" type="text/css" href="static/styles.css" />
 </header>
-<body style="text-align: center;">
-    <p>------------</p>
-    <form action="#" method="post">
-        <input name="searchbar" type="text" autocomplete="off" placeholder="rock a numbah...">
-        <input name="submit" type="submit">
-    </form>
-    <h3>Results:</h3>
-    {% if results %}
-        {% for result in results %}
-            <p>{{result.ref}} = {{result.num}}</p>
-        {% endfor %}
-    {% else %}
-        <p> No results </p>
-    {% endif %}
+<body>
+    <div class="centered">
+        <p>------------</p>
+
+        <form action="#" method="post">
+            <input name="searchbar" type="text" autocomplete="off" placeholder="rock a numbah...">
+            <input name="submit" type="submit">
+        </form>
+
+        {% if results and query %}
+            <h3>Results for {{query}}:</h3>
+        {% endif %}
+    </div>
+    <div class="row">
+        <div class="column" style="text-align: right;">
+            {% if results %}
+
+                {% for result in results %}
+
+                    {{result.ref}} = 
+                    <br>
+                    <br>
+                {% endfor %}
+
+            {% else %}
+
+                <p> No figure reference found. </p>
+
+            {% endif %}
+        </div>
+        <div class="column" style="text-align: left;">
+            {% if results %}
+        
+                {% for result in results %}
+        
+                     {{result.num}}
+                    <br>
+                    <br>
+        
+                {% endfor %}
+        
+            {% else %}
+
+                <p> No constant found. </p>
+
+            {% endif %}
+        </div>  
+    </div>
 </body>
