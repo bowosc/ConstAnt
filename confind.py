@@ -24,18 +24,30 @@ class figs(db.Model):
         self.creator = creator
         self.notes = notes
 
-def add_user_const(username, constname, equation, notes):
-    #calulate value from equation
+def add_user_const(username:str = None, constname:str = None, equation:str = 0, notes:str = None):
+    '''
+    Note that the returned value will always be either a string for an error message or a float for a success.
+    '''
+
+    n = figs.query.filter_by(name=constname).first()
+    l = figs.query.filter_by(ref=equation).first()
+    if n:
+        return "A constant with this name already exists!"
+    elif l:
+        return "A constant with this equation already exists!"
+    
     value = rpn.calculateInfix(equation)
     if isinstance(value, str): # if its an error msg
-        print("we got a string here")
-        print(value)
         return value
     else:
-        b = figs(value, equation, constname, username, notes)
-        db.session.add(b)
-        db.session.commit()
-        print(f"Added constant {b.name}: {b.ref} = {b.num}. Added by user {b.creator}. Notes: {b.notes}")
+        m = figs.query.filter_by(num=value).first()
+        if m:
+            return "This constant has already been defined!"
+        else:
+            b = figs(value, equation, constname, username, notes)
+            db.session.add(b)
+            db.session.commit()
+            print(f"Added constant {b.name}: {b.ref} = {b.num}. Added by user {b.creator}. Notes: {b.notes}")
     return b.num
 
 
@@ -138,27 +150,32 @@ def does_table_exists():
      if figs.query.order_by(figs.ref).limit(25).count() < 20: # check if there's anything in the db
         inittable()
 
-def search_by_name():
-    results = figs.query.order_by(figs._id.desc()).limit(50).all() # main search is currently directed towards this funciton rather than confind
-    return results
 
-def confind(whatnum:float = False, whatref:str = False) -> list[list[int, float, str]]:
+def confind(whatnum:float = False, whatref:str = False, whatname:str = False, whatcreator:str = False, whatid:int = False) -> list[list[int, float, str]]:
     '''
     Returns a list of results matching the query entered. 
 
-    confind() should only be used with one argument at a time, the other argument should be False.
-    ex: findmynumber = confind(6.28, None)
-    ex: findmyref = confind(None, 'pi*2')
+    confind() should only be used with one argument at a time, the other arguments should be False or not used.
+    ex: findmynumber = confind(6.28, False, False, False)
+    ex: findmyref = confind(False, 'pi*2')
     '''
-    if whatref:
-        results = figs.query.filter_by(ref=whatref).all().limit(50)
-    elif whatnum:
-        results = figs.query.filter(figs.num.startswith(whatnum)).order_by(figs.num).limit(50).all()
+    lim = 50 # we check the first 50 results in the DB :)
 
-        if not results:
-            results = ['no rezzies']
+    if whatref:
+        results = figs.query.filter(figs.ref.contains(whatref)).order_by(figs.creator).limit(lim).all()
+    elif whatname:
+        results = figs.query.filter(figs.name.contains(whatname)).order_by(figs.creator).limit(lim).all()
+    elif whatcreator:
+        results = figs.query.filter(figs.creator.contains(whatcreator)).order_by(figs.creator).limit(lim).all()
+    elif whatnum:
+        results = figs.query.filter(figs.num.startswith(whatnum)).order_by(figs.num).limit(lim).all()
+    elif whatid:
+        results = figs.query.filter_by(_id = whatid).first()
     else:
-        results = ['ERROR: No arguments parsed? Like why?']
+        return 'No arguments parsed.'
+
+    if not results:
+        return 'No results for query.'
     
     return results
 

@@ -1,7 +1,10 @@
 {% extends "base.html" %}
+
 {% block body %}
-<body>
-    <div class="centered">
+<body class="centered">
+    <br>
+    <h1 class="centered"> Home </h1>
+    <div class="homesearch centered">
         <p>------------</p>
 
         <form action="#" method="post">
@@ -12,40 +15,31 @@
         {% if results and query %}
             <h3>Results for {{query}}:</h3>
         {% endif %}
-    </div>
-    <div class="row">
-        <div class="column" style="text-align: right;">
-            {% if results %}
+        <div class="row">
+            <div class="column">
+                {% if results %}
 
-                {% for result in results %}
-                    [{{ result.name }}, by {{ result.creator }}] {{result.ref}} = 
+                    {% for result in results %}
+                    <a href="/viewconst/{{result._id}}">
+                        <div class="numbox">
+                            <div class="innernumbox">
+                                <h3>{{result.name}}</h3>
+                                <h3>{{result.num}}</h3>
+                                <p>Found using {{result.ref}} by {{result.creator}}</p>
+                            </div>
+                        </div>
+                    </a>
                     <br>
                     <br>
-                {% endfor %}
+                    {% endfor %}
 
-            {% else %}
+                {% else %}
 
-                <p> No figure reference found. </p>
+                    <p> Search something! </p>
 
-            {% endif %}
+                {% endif %}
+            </div>
         </div>
-        <div class="column" style="text-align: left;">
-            {% if results %}
-        
-                {% for result in results %}
-        
-                     {{result.num}}
-                    <br>
-                    <br>
-        
-                {% endfor %}
-        
-            {% else %}
-
-                <p> No constant found. </p>
-
-            {% endif %}
-        </div>  
     </div>
 </body>
 {% endblock %}

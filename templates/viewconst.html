@@ -1,5 +1,15 @@
 {% extends "base.html" %}
 
 {% block body %}
-
+<body>
+    <div style="text-align: center">
+        <h2>Constant name: {{ constdata.name }}</h2>
+        <h3>by {{ constdata.creator }}</h3>
+        <br>
+        <p>{{ constdata.ref }} = {{ constdata.num }}</p>
+        <br> 
+        <p>Notes:</p>
+        <p>{{ constdata.notes }}</p>
+    </div>
+</body>
 {% endblock %}

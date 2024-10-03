@@ -1,3 +1,10 @@
+html, body {
+    margin: 0;
+    height: 100%;
+    color: white;
+    background-color: #141414;
+}
+
 .row {
     display: flex;
 }
@@ -6,11 +13,67 @@
     flex: 50%;
 }
 
-.centered {
-    text-align: center
+.newconstinput {
+    width: 30%;
+    height: 30px;
 }
 
-usererror {
+.navbar {
+    background-color: rgb(0, 39, 86);
+    color:2B6ABC;
+    width: 100%;
+    height: 5%;
+    
+}
+
+a {
+    text-decoration: none;
+}
+
+.numbox {
+    background-color:#003D82;
+    padding: 10px;
+    text-align: left;
+    height: 200px;
+    width: 100%;
+}
+
+.innernumbox {
+    height: 90%;
+    width: 90%;
+    background-color:#0C53A6;
+    margin: auto;
+    padding: 5px;
+    color: white;
+}
+
+.centered {
+    text-align: center;
+    margin: auto;
+}
+
+.homesearch {
+    width: 40%;
+
+}
+
+.flashed {
+    font-size: medium;
+    color: black;
+    text-align: center;
+}
+
+.usererror {
     color: red;
     background-color: yellow;
+}
+
+.error {
+    color: orange;
+    background-color: black;
+}
+
+.success {
+    color: green;
+    background-color: beige;
 }

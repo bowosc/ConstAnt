@@ -441,10 +441,11 @@ class rpn:
         try:
             input = rpn.infixToRPN(input)
             result = rpn.calculateRPN(input)
-            print(result)
-            return result
+            return float(result)
         except ValueError:
             return("[rpn] Syntax Error! Please double-check your expression and make sure the notation is correct.")
+        except TypeError:
+            return("[rpn] TypeError. Might be my bad, but you should probably check your input just to be sure.")
         except ZeroDivisionError:
             return("[rpn] Please don't try to divide by zero.")
         except nonrealValueError:
