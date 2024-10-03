@@ -2,7 +2,6 @@ from flask import Flask
 from flask import render_template, redirect, request, url_for, flash
 import confind
 
-
 '''
 TODO
 social medialization
@@ -12,6 +11,7 @@ idiotproofing, error msgs and whatever
 equation-solver should probably be improved
 number line viewer :)
 '''
+
 app = Flask(__name__)
 app.secret_key = "password"
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.sqlite3'
@@ -23,7 +23,7 @@ def home():
     query = None
     if request.method == 'POST':
         if request.form['searchbar'] != None:
-            results = confind.confind(request.form['searchbar'], False, False, False, False)
+            results = confind.confind(request.form['searchbar'])
             if isinstance(results, str): # if confind returns an error msg
                 flash(results)
                 redirect(url_for("home"))
@@ -72,7 +72,8 @@ def viewconst(id):
     if not constdata:
         flash('No constant with that ID exists!', 'usererror')
         return redirect(url_for("home"))
-    return render_template('viewconst.html', constdata = constdata)
+    soldata = confind.solfind(id)
+    return render_template('viewconst.html', constdata = constdata, soldata = soldata)
 
 
 

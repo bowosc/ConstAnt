@@ -3,13 +3,21 @@
 {% block body %}
 <body>
     <div style="text-align: center">
-        <h2>Constant name: {{ constdata.name }}</h2>
+        <h2>{{ constdata.name }}</h2>
         <h3>by {{ constdata.creator }}</h3>
         <br>
-        <p>{{ constdata.ref }} = {{ constdata.num }}</p>
-        <br> 
-        <p>Notes:</p>
-        <p>{{ constdata.notes }}</p>
+        <h2>{{ constdata.num }}</h2>
+        <br>
+        <h2>Notes:</h2>
+        <h3>{{ constdata.notes }}</h3>
+        <br>
+        <h2>Ways to find:</h2>
+        {% for sol in soldata %}
+            <p>{{ sol.sol }}</p>
+        {% endfor %}
+        <br>
+        <br>
+        <br>
     </div>
 </body>
 {% endblock %}
