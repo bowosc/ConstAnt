@@ -2,7 +2,17 @@
 <header style="text-align: center;">
     <link rel="stylesheet" type="text/css" href="../static/styles.css" />
     <div class="navbar">
-        <a href="/"><h1>Home</a> &nbsp;&nbsp;&nbsp; <a href="/newconst">+</h1></a>
+        <h1>
+            <a href="/">Home</a> &nbsp;&nbsp;&nbsp; 
+            <a href="/newconst">+</a> &nbsp;&nbsp;&nbsp; 
+            {% if "user" in session %}
+                <a href="/logout">logout</a> &nbsp;&nbsp;&nbsp;
+                <span style="font-size: medium;">Logged in as {{ session.user }}</span>  &nbsp;&nbsp;&nbsp;
+            {% else %}
+                <a href="/register">register</a> &nbsp;&nbsp;&nbsp;
+                <a href="/login">login</a> &nbsp;&nbsp;&nbsp;
+            {% endif %}
+        </h1>
     </div>
 </header>
 

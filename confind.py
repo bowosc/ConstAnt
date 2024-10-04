@@ -1,5 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy, session
-import math
+import math, re
 from datetime import datetime
 from sqlalchemy import func, DateTime, delete
 from rpn import rpn
@@ -9,6 +9,7 @@ db = SQLAlchemy()
 phi = (1 + 5 ** 0.5) / 2 # golden ratio
 sqrttwo = math.sqrt(2)
 sqrtthree = math.sqrt(3)
+
 
 class figs(db.Model):
     _id = db.Column("id", db.Integer, primary_key=True)
@@ -38,8 +39,71 @@ class solves(db.Model):
         self.sol = sol
         # no datetime def needed B)
 
+class users(db.Model):
+    _id = db.Column("id", db.Integer, primary_key=True)
+    name = db.Column(db.String(255))
+    pw = db.Column(db.String(255))
+    email = db.Column(db.String(255))
+    notes = db.Column(db.String(255))
+    isadmin = db.Column(db.Boolean())
+    isbanned = db.Column(db.Boolean())
+    isverified = db.Column(db.Boolean())
+    creationdate = db.Column(DateTime, default=datetime.utcnow)
+    
+    def __init__(self, name, pw, email):
+        self.name = name
+        self.pw = pw
+        self.email = email
+        self.notes = "I'm new here!"
+        self.isadmin = False
+        self.isbanned = False
+        self.isverified = False
 
+def new_user(thename, thepw, theemail):
+    '''user.password = bcrypt.hashpw(str.encode(newpass), bcrypt.gensalt())
+    if bcrypt.checkpw(str.encode(foundpass), founduser.password):'''
 
+    if is_email_valid(theemail) != True:
+        return "Invalid email address!"
+    
+    if len(thename) > 24:
+        return "Your username cannot be longer than 24 characters."
+
+    if len(thepw) > 24:
+        return "Your password cannot be longer than 24 characters."
+    
+    em = users.query.filter_by(email=theemail).first()
+    if em:
+        return "You already have an account, please sign in!"
+    
+    nm = users.query.filter_by(name=thename).first()
+    if nm:
+        return "This username is taken. Please choose a different one."
+    
+    wowie = users(thename, thepw, theemail)
+    db.session.add(wowie)
+    db.session.commit()
+    print("registered user " + wowie.name)
+    return wowie
+
+def verify_login(thename, thepw): # this seems too simple 
+    eu = users.query.filter_by(name = thename).first()
+    if eu:
+        if thepw != eu.pw:
+            return 'Incorrect username or password!'
+        print("logged in user " + eu.name)
+        return eu
+    else:
+        return 'Incorrect username or password!'
+
+def is_email_valid(email):
+    regex = r'^[a-z0-9]+[\._]?[a-z0-9]+[@]\w+[.]\w+$'
+    if len(email) > 128:
+        return False
+    if re.match(regex, email):
+        return True
+    else:
+        return False
 
 def add_user_const(username:str = None, constname:str = None, equation:str = 0, notes:str = None):
     '''
@@ -63,18 +127,19 @@ def add_user_const(username:str = None, constname:str = None, equation:str = 0, 
         else:
             b = figs(value, equation, constname, username, notes)
             db.session.add(b)
-            db.session.commit()
+            bingus = figs.query.filter_by(num=value).first()
+            s = solves(bingus._id, bingus.ref)
+            db.session.add(s)
+            db.session.commit()# EQUATIONS NOT SHOWING UP ON CUSTOM CONSTANT /VIEWCONSTANT PAGE FOR SOME REASON. IDK BRO
+            print(f"{s.fid} {s.sol}")
             print(f"Added constant {b.name}: {b.ref} = {b.num}. Added by user {b.creator}. Notes: {b.notes}")
     return b.num
-
-
-
 
 def generate_table(): 
     '''
     generate a mf table
     '''
-    constants = ["pi", "e", "sqrt(2)", "sqrt(3)", "phi", "1/2", "1/3", "1/4", "1/5", "1/6", 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] 
+    constants = ["pi", "e", "sqrt(2)", "sqrt(3)", "phi", "(1/2)", "(1/3)", "(1/4)", "(1/5)", "(1/6)", 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] 
 
     l = []
     for c in constants: # apply unary operations
@@ -133,15 +198,15 @@ def diversify(d) -> list[list[float, str]]: # c for constant and constant is for
             c = sqrttwo
         case "sqrt(3)":
             c = sqrtthree
-        case "1/2":
+        case "(1/2)":
             c = 1/2
-        case "1/3":
+        case "(1/3)":
             c = 1/3
-        case "1/4":
+        case "(1/4)":
             c = 1/4
-        case "1/5":
+        case "(1/5)":
             c = 1/5
-        case "1/6":
+        case "(1/6)":
             c = 1/6
 
     al.append([c, f'{d}'])
@@ -173,7 +238,6 @@ def solfind(whatid:int) -> list[solves]:
     '''
     results = solves.query.filter_by(fid = whatid).all()
     return results
-
 
 def confind(whatnum:float = False, whatref:str = False, whatname:str = False, whatcreator:str = False, whatid:int = False) -> list[list[int, float, str]]:
     '''
@@ -244,4 +308,4 @@ def inittable():
 
 if __name__ == "__main__":
     # do nothin
-    print("try running main bro")
+    print("try running main.py bro")
