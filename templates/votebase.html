@@ -1,0 +1,34 @@
+{% if user.has_upvoted_post(result) %}
+    <button onclick="voteOnPost()" id="{{result._id}}" class="votebutton voted_button"> [{{result.votes.count()}}] </button>  
+{% else %}
+    <button onclick="voteOnPost()" id="{{result._id}}" class="votebutton unvoted_button"> [{{result.votes.count()}}] </button>  
+{% endif %}
+
+
+{% if "user" in session %}
+    <script>
+        function voteOnPost() {
+            var button = event.target;
+            var element_id = button.id;
+            index = element_id;
+            
+            var elm = document.getElementById(index);
+            elm.classList.toggle("unvoted_button");
+            elm.classList.toggle("voted_button");
+
+            fetch(`/figvote/${index}/toggle`)
+                .then(function(response) {
+                    return response.text();
+                }).then(function(votescount) {
+                    document.getElementById(index).innerText = "[" + votescount + "]";
+                });
+                
+        }
+      </script>
+{% else %}
+    <script>
+        function voteOnPost() {
+            window.location.href = "/login";
+        } 
+    </script>
+{% endif %}

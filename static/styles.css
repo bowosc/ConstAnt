@@ -1,0 +1,95 @@
+html, body {
+    margin: 0;
+    height: 100%;
+    color: white;
+    background-color: #141414;
+}
+
+.row {
+    display: flex;
+}
+  
+.column {
+    flex: 50%;
+}
+
+.newconstinput {
+    width: 30%;
+    height: 30px;
+}
+
+.navbar {
+    background-color: rgb(0, 39, 86);
+    color: #ffffff;
+    width: 100%;
+    height: 5%;
+    
+}
+
+a {
+    text-decoration: none;
+}
+
+.numbox {
+    background-color:#003D82;
+    padding: 10px;
+    text-align: left;
+    height: 210px;
+    width: 100%;
+}
+
+.innernumbox {
+    height: 90%;
+    width: 90%;
+    background-color:#ffffff;
+    margin: auto;
+    padding: 5px;
+    color: white;
+}
+
+.votebutton {
+    width: 10%;
+    height: 30px;
+    float: auto;
+    font-size: large;
+    font-weight: bold;
+}
+
+.voted_button {
+    background-color: rgb(30, 213, 112);
+}
+
+.unvoted_button {
+    background-color: rgb(190, 190, 190);
+}
+
+.centered {
+    text-align: center;
+    margin: auto;
+}
+
+.homesearch {
+    width: 40%;
+
+}
+
+.flashed {
+    font-size: medium;
+    color: black;
+    text-align: center;
+}
+
+.usererror {
+    color: red;
+    background-color: yellow;
+}
+
+.error {
+    color: orange;
+    background-color: black;
+}
+
+.success {
+    color: green;
+    background-color: beige;
+}

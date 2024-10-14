@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block body %}
+<body>
+    <div style="text-align: center">
+        <h2>{{ result.name }}</h2>
+        <h3>by {{ result.creator }}</h3>
+
+        {% include 'votebase.html' %}
+        
+        <br>
+        <h2>{{ result.num }}</h2>
+        <br>
+        <h2>Notes:</h2>
+        <h3>{{ result.notes }}</h3>
+        <br>
+        <h2>Some ways to find it:</h2>
+        {% for sol in soldata %}
+            <p>{{ sol.sol }}</p>
+        {% endfor %}
+        <br>
+        <br>
+        <br>
+    </div>
+</body>
+{% endblock %}
