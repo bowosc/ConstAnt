@@ -5,15 +5,25 @@ from datetime import timedelta
 '''
 TODO
 social medialization
-- comments
-- account viewing page
-- encrypt passwords
+- order numbers by likes
+
+
+
+switch to using sympy for math, esp trig functions :/
+related to: calculations should be more accurate; e.g. sin(pi)^sqrt(2) != 0 rn
+
+idiotproofing, error msgs and whatever
+expand DB to third level ops
+
+
+UI/UX??
+
 
 later:
-if user makes new entry of different equation that results in same answer, add it to the other one
-expand DB to third level ops
-idiotproofing, error msgs and whatever
-number line viewer 
+account viewing page
+number line viewer
+encrypt passwords
+comments
 '''
 
 app = Flask(__name__)
@@ -49,7 +59,7 @@ def home():
     query = None
     if request.method == 'POST':
         if request.form['searchbar'] != None:
-            results = confind.confind(request.form['searchbar'])
+            results = confind.confind(whatnum = request.form['searchbar'])
             if isinstance(results, str): # if confind returns an error msg
                 flash(results, 'error')
                 results = None

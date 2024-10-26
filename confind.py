@@ -43,15 +43,15 @@ class solves(db.Model):
 
 class figvotes(db.Model):
     _id = db.Column(db.Integer, primary_key=True)
-    userid = db.Column(db.Integer, db.ForeignKey('users._id'))
-    figid = db.Column(db.Integer, db.ForeignKey('figs._id'))
+    userid = db.Column('userid', db.Integer, db.ForeignKey('users._id'))
+    figid = db.Column('figid', db.Integer, db.ForeignKey('figs._id'))
     upvote = db.Column(db.Boolean)
     super = db.Column(db.Boolean)
 
     def __init__(self, userid, figid):
         self.userid = userid
         self.figid = figid
-        self.upvote = None # NOTE: DEPRECIATED. false if downvote, true if upvote. 
+        self.upvote = None #[NOTE: DEPRECIATED] false if downvote, true if upvote. 
         self.super = False # unused rn
 
 class users(db.Model):
@@ -164,7 +164,7 @@ def add_user_const(userid:int = None, constname:str = None, equation:str = 0, no
     Note that the returned value will always be either a string for an error message or a float for a success.
     '''
 
-    n = figs.query.filter_by(name=constname).first()
+    n = figs.query.filter_by(name=constname).first() 
     l = figs.query.filter_by(ref=equation).first()
     if n:
         return "A constant with this name already exists!"
@@ -176,15 +176,23 @@ def add_user_const(userid:int = None, constname:str = None, equation:str = 0, no
         return value
     else:
         m = figs.query.filter_by(num=value).first()
+        
         if m:
-            return "This constant has already been defined!"
+            ''' the world not ready for this yet
+            if not solves.query.filter_by(sol=equation).first():
+                newsol = solves(m._id, equation)
+                db.session.add(newsol)
+                '''
+            return "This constant has already been defined, but we added your definition to the list!"
+        
         else:
             b = figs(value, equation, constname, userid, notes)
             db.session.add(b)
             bingus = figs.query.filter_by(num=value).first()
             s = solves(bingus._id, bingus.ref)
             db.session.add(s)
-            db.session.commit()# EQUATIONS NOT SHOWING UP ON CUSTOM CONSTANT /VIEWCONSTANT PAGE FOR SOME REASON. IDK BRO
+
+            db.session.commit()
             print(f"{s.fid} {s.sol}")
             print(f"Added constant {b.name}: {b.ref} = {b.num}. Added by user {b.creator}. Notes: {b.notes}")
     return b.num
@@ -303,6 +311,7 @@ def confind(whatnum:float = False, whatref:str = False, whatname:str = False, wh
     ex: findmyref = confind(False, 'pi*2')
     '''
     lim = 50 # we check the first 50 results in the DB :)
+    results = None
 
     if whatref:
         results = figs.query.filter(figs.ref.contains(whatref)).order_by(figs.creator).limit(lim).all()
@@ -311,7 +320,7 @@ def confind(whatnum:float = False, whatref:str = False, whatname:str = False, wh
     elif whatcreator:
         results = figs.query.filter(figs.creator.contains(whatcreator)).order_by(figs.creator).limit(lim).all()
     elif whatnum:
-        results = figs.query.filter(figs.num.startswith(whatnum)).order_by(figs.num).limit(lim).all()
+        results = figs.query.filter(figs.num.startswith(whatnum)).order_by(figs.creator).limit(lim).all()
     elif whatid:
         results = figs.query.filter_by(_id = whatid).first()
     else:
