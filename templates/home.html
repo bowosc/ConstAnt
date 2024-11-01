@@ -25,11 +25,12 @@
                     <a href="/viewconst/{{result._id}}">
                         <div class="numbox">
                             <div class="innernumbox">
+
                                 <h3>{{result.name}}</h3>
-                                
                                 <h3>{{result.num}}</h3>
                                 <p>by {{result.creator}}</p>
                                 <p>Sample Expression: {{result.ref}}</p>
+
                                 <p><a href="{{ url_for('figvote', figid=result._id, action='like') }}">[VOTE]</a><a href="{{ url_for('figvote', figid=result._id, action='unlike') }}">[UNVOTE]</a></p>
                             </div>
                         </div>

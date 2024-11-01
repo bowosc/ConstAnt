@@ -114,8 +114,9 @@ def voteaction(figid, action, userid):
     return fig.votes.count()
 
 def new_user(thename, thepw, theemail):
-    '''user.password = bcrypt.hashpw(str.encode(newpass), bcrypt.gensalt())
-    if bcrypt.checkpw(str.encode(foundpass), founduser.password):'''
+    '''
+    should probably sanitize the data input
+    '''
 
     if is_email_valid(theemail) != True:
         return "Invalid email address!"
@@ -173,28 +174,32 @@ def add_user_const(userid:int = None, constname:str = None, equation:str = 0, no
     
     value = rpn.calculateInfix(equation)
     if isinstance(value, str): # if its an error msg
+        print("the value that rpn returned is a STRING AAAAA")
         return value
     else:
         m = figs.query.filter_by(num=value).first()
         
         if m:
-            ''' the world not ready for this yet
             if not solves.query.filter_by(sol=equation).first():
                 newsol = solves(m._id, equation)
                 db.session.add(newsol)
-                '''
+                bestoption = solves.query.filter_by(sol=equation).order_by(func.length(solves.sol)).first() # shortest expression to find the constant
+                m.ref = bestoption.sol
+                db.session.commit()
             return "This constant has already been defined, but we added your definition to the list!"
         
         else:
-            b = figs(value, equation, constname, userid, notes)
+            theuser = users.query.filter_by(_id = userid).first()
+            b = figs(value, equation, constname, theuser.name, notes)
             db.session.add(b)
-            bingus = figs.query.filter_by(num=value).first()
+            bingus = figs.query.filter_by(num = value).first()
             s = solves(bingus._id, bingus.ref)
             db.session.add(s)
 
             db.session.commit()
             print(f"{s.fid} {s.sol}")
             print(f"Added constant {b.name}: {b.ref} = {b.num}. Added by user {b.creator}. Notes: {b.notes}")
+    print("we got there appt")
     return b.num
 
 def generate_table(): 
@@ -298,18 +303,19 @@ def solfind(whatid:int) -> list[solves]:
     '''
     Gets a list of equations for a given number.
     '''
-    results = solves.query.filter_by(fid = whatid).all()
+    results = solves.query.filter_by(fid = whatid).order_by(func.length(solves.sol)).all()
     return results
 
 # the big one
-def confind(whatnum:float = False, whatref:str = False, whatname:str = False, whatcreator:str = False, whatid:int = False) -> list[list[int, float, str]]:
+def confind(whatnum:float = False, whatref:str = False, whatname:str = False, whatcreator:str = False, whatid:int = False) -> list[figs]:
     '''
     Returns a list of results matching the query entered, searching the figs table.
 
     confind() should only be used with one argument at a time, the other arguments should be False or not used.
-    ex: findmynumber = confind(6.28, False, False, False)
-    ex: findmyref = confind(False, 'pi*2')
+    ex: findmynumber = confind(6.28, False, False, False, False)
+    ex: findmyref = confind(whatid = 123456)
     '''
+
     lim = 50 # we check the first 50 results in the DB :)
     results = None
 
@@ -320,7 +326,7 @@ def confind(whatnum:float = False, whatref:str = False, whatname:str = False, wh
     elif whatcreator:
         results = figs.query.filter(figs.creator.contains(whatcreator)).order_by(figs.creator).limit(lim).all()
     elif whatnum:
-        results = figs.query.filter(figs.num.startswith(whatnum)).order_by(figs.creator).limit(lim).all()
+        results = figs.query.filter(figs.num.startswith(whatnum)).order_by(figs.num).limit(lim).all() # this is the one used most 
     elif whatid:
         results = figs.query.filter_by(_id = whatid).first()
     else:
@@ -335,11 +341,11 @@ def confind(whatnum:float = False, whatref:str = False, whatname:str = False, wh
 
 def find_user(userid: int) -> users:
     '''
-    Guess
+    three guesses what this does
     '''
     user = users.query.filter_by(_id = userid).first()
     if user == None:
-        return "USER NOT FOUND"
+        return None
     return user
 
 def init_default_user():

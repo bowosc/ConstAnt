@@ -5,15 +5,17 @@ from datetime import timedelta
 '''
 TODO
 social medialization
-- order numbers by likes
+    order numbers by likes
 
 
+database content stuff
+    expand DB to third level ops
+    switch to using sympy for math, esp trig functions :/
+    related to: calculations should be more accurate; e.g. sin(pi)^sqrt(2) != 0 rn
 
-switch to using sympy for math, esp trig functions :/
-related to: calculations should be more accurate; e.g. sin(pi)^sqrt(2) != 0 rn
-
-idiotproofing, error msgs and whatever
-expand DB to third level ops
+idiotproofing
+    error msgs and whatever
+    prevent ppl from submitting expressions like 2+0+0+0+0 or 2+sin(pi)+sin(pi)+sin(pi)
 
 
 UI/UX??

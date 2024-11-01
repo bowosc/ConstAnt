@@ -392,7 +392,7 @@ class rpn:
                 #print("added to stack: " + str(i))
                 stack.append(i)
         result = stack[-1]
-        return result
+        return float(result)
 
     def infixToGoodInfix(input):
         '''
