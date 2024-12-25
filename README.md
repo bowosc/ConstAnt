@@ -1,4 +1,4 @@
-Note: I am ashamed of some of the far-from-best practices used in this code. Were I coding this today, it would look different.
+**Note: I am ashamed of some of the far-from-best practices used in this code. Were I coding this today, it would look different.**
 
 
 ConstAnt is a near-finished project centered around the idea of a search engine that enables a user to search a mathematical expression by the result, kind of like a reverse calculator.
