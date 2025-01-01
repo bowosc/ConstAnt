@@ -32,7 +32,7 @@ class figs(db.Model):
 
 class solves(db.Model):
     _id = db.Column(db.Integer, primary_key=True)
-    fid = db.Column(db.Integer) # id of figure its attached to
+    fid = db.Column(db.Integer) # id of fig its attached to
     sol = db.Column(db.String(255)) # equation
     date = db.Column(DateTime, default=datetime.now())
 
@@ -95,7 +95,18 @@ class users(db.Model):
         self.isverified = False
 
 
-def voteaction(figid, action, userid):
+def voteaction(figid: int, action: str, userid: int) -> int:
+    '''
+    Runs when a user clicks the "vote" button on a fig. 
+    Basically just a toggle switch for this user's vote on this fig.
+
+    figid: id of the fig in question.
+    userid: id of the user in question.
+    action: 'toggle', 'like' or 'unlike'. Pretty much only toggle should be used, like and unlike exist only for testing right now.
+
+    Returns the amount of votes on the fig.
+    '''
+
     fig = figs.query.filter_by(_id=figid).first_or_404() # special tech B)
     usr = users.query.filter_by(_id=userid).first()
 
@@ -113,9 +124,17 @@ def voteaction(figid, action, userid):
         db.session.commit()
     return fig.votes.count()
 
-def new_user(thename, thepw, theemail):
+def new_user(thename: str, thepw: str, theemail: str) -> users:
     '''
-    should probably sanitize the data input
+    NOTE: DOES NOT SANITIZE DATA INPUT!
+
+    Adds a user to the database. 
+
+    thename: the name :)
+    thepw: the password :) NOTE: This needs to be encrypted. It currently isn't. It's on my TODO list.
+    theemail: the email :)
+
+    Returns the user object.
     '''
 
     if is_email_valid(theemail) != True:
@@ -141,7 +160,15 @@ def new_user(thename, thepw, theemail):
     print("registered user " + wowie.name)
     return wowie
 
-def verify_login(thename, thepw): # this seems too simple 
+def verify_login(thename: str, thepw: str) -> users | str: # this seems too simple 
+    '''
+    Verify the username & password of a user.
+
+    thename: Username
+    thepw: Password
+
+    Returns either user object or user error string, depending on if user/pass was correct or not.
+    '''
     eu = users.query.filter_by(name = thename).first()
     if eu:
         if thepw != eu.pw:
@@ -151,7 +178,16 @@ def verify_login(thename, thepw): # this seems too simple
     else:
         return 'Incorrect username or password!'
 
-def is_email_valid(email):
+def is_email_valid(email: str) -> bool:
+    '''
+    Uses a nice little regex pile to quickly check if an email seems email-ish. 
+    This is fine for now, but far from comprehensive. 
+    In a later version I'll use SMTP to verify email with a code instead.
+
+    email: Email to verify.
+    
+    returns True if email seems legit and False if not.
+    '''
     regex = r'^[a-z0-9]+[\._]?[a-z0-9]+[@]\w+[.]\w+$'
     if len(email) > 128:
         return False
@@ -160,37 +196,44 @@ def is_email_valid(email):
     else:
         return False
 
-def add_user_const(userid:int = None, constname:str = None, equation:str = 0, notes:str = None):
+def add_user_const(userid:int, constname:str, expression:str = 0, notes:str = None) -> float | str:
     '''
-    Note that the returned value will always be either a string for an error message or a float for a success.
+    Adds a user const/fig to the database. Checks if it already exists, too.
+
+    userid: id of the user adding the const/fig
+    constname: name of the const/fig
+    expression: expression that computes the const/fig
+    notes: notes for the const/fig
+
+    Note that the returned value will be either a string (error msg) for user error or a float (the const) for a success.
     '''
 
     n = figs.query.filter_by(name=constname).first() 
-    l = figs.query.filter_by(ref=equation).first()
+    l = figs.query.filter_by(ref=expression).first()
     if n:
         return "A constant with this name already exists!"
     elif l:
-        return "A constant with this equation already exists!"
+        return "A constant with this expression already exists!"
     
-    value = rpn.calculateInfix(equation)
-    if isinstance(value, str): # if its an error msg
-        print("the value that rpn returned is a STRING AAAAA")
+    value = rpn.calculateInfix(expression)
+    if isinstance(value, str): # if rpn returned a string, aka if its an error msg
+        print("RPN error!")
         return value
     else:
         m = figs.query.filter_by(num=value).first()
         
         if m:
-            if not solves.query.filter_by(sol=equation).first():
-                newsol = solves(m._id, equation)
+            if not solves.query.filter_by(sol=expression).first():
+                newsol = solves(m._id, expression)
                 db.session.add(newsol)
-                bestoption = solves.query.filter_by(sol=equation).order_by(func.length(solves.sol)).first() # shortest expression to find the constant
+                bestoption = solves.query.filter_by(sol=expression).order_by(func.length(solves.sol)).first() # shortest expression to find the constant
                 m.ref = bestoption.sol
                 db.session.commit()
             return "This constant has already been defined, but we added your definition to the list!"
         
         else:
             theuser = users.query.filter_by(_id = userid).first()
-            b = figs(value, equation, constname, theuser.name, notes)
+            b = figs(value, expression, constname, theuser.name, notes)
             db.session.add(b)
             bingus = figs.query.filter_by(num = value).first()
             s = solves(bingus._id, bingus.ref)
@@ -202,7 +245,7 @@ def add_user_const(userid:int = None, constname:str = None, equation:str = 0, no
     print("we got there appt")
     return b.num
 
-def generate_table(): 
+def generate_table() -> list[list[float, str]]: 
     '''
     generate a mf table
     '''
@@ -216,11 +259,22 @@ def generate_table():
     l = binary_operations(l)
     return l
     
-def binary_operations(l):
-    al = [] # altlist, so we don't screw up the for loop
+def binary_operations(l: list[list[float, str]]) -> list[list[float, str]]:
+    '''
+    Executes a series of various binary operations on the inputted list.
+
+    l: A list of floats.
+
+    Returns an expanded copy of the list including variants with various binary operations applied.
+    '''
+
+
+    # NOTE: DO THIS IN O(NlogN) with the better algorithm, there's no excuse for it still being O(N^2) :/
+
+    al = [] # alt list, so we don't screw up the for loop
     for i in l: # for item in that one list, apply binary operations
         for j in l:
-                #unreadable lol there's stuff here designed to stop random duplicates from appearing
+                # Pretty much unreadable. there's stuff here designed to stop random duplicates from appearing
             if i[0] > 0 and j[0] != 1 and j[0] != 0:
                     try:
                         print(i[0])
@@ -247,14 +301,20 @@ def binary_operations(l):
     l.extend(al)
     return l
 
-def diversify(d) -> list[list[float, str]]: # c for constant and constant is for me
+def diversify(d: list[float]) -> list[list[float, str]]: 
     '''
+    d: list of numbers to start out with.
+
     Returns a list of lists of c with unary operations applied.
-    Sublist format: [sin(c), 'sin({c})']
+
+    Sublist format: [constant, 'expression to find constant']
+    ex: [sin(c), 'sin({c})']
     '''
     al = []
-    c = d
     match d:
+
+        # c for constant and constant is for me
+
         case "pi": 
             c = math.pi
         case "e":
@@ -296,12 +356,21 @@ def diversify(d) -> list[list[float, str]]: # c for constant and constant is for
     return al
 
 def does_table_exists():
-     if figs.query.order_by(figs.ref).limit(25).count() < 20: # check if there's anything in the db
-        inittable()
+    '''
+    Returns True if figs table exists.
+    Returns false if figs table doesn't exist or is empty.
+    '''
+    if figs.query.order_by(figs.ref).limit(25).count() > 20: # check if there's anything in the db
+        return True
+    else:
+        return False
 
 def solfind(whatid:int) -> list[solves]:
     '''
-    Gets a list of equations for a given number.
+    Returns a list of expressions that result in the value of the fig.
+
+    whatid: Id of fig in question
+    
     '''
     results = solves.query.filter_by(fid = whatid).order_by(func.length(solves.sol)).all()
     return results
@@ -310,13 +379,18 @@ def solfind(whatid:int) -> list[solves]:
 def confind(whatnum:float = False, whatref:str = False, whatname:str = False, whatcreator:str = False, whatid:int = False) -> list[figs]:
     '''
     Returns a list of results matching the query entered, searching the figs table.
+    As of now, confind() should only be used with one search argument at a time.
 
-    confind() should only be used with one argument at a time, the other arguments should be False or not used.
-    ex: findmynumber = confind(6.28, False, False, False, False)
-    ex: findmyref = confind(whatid = 123456)
+    whatnum: Value of the fig/const
+    whatref: Expression that results in the fig/const's value (just use a calculator bro)
+    whatname: Name of the fig/const searched
+    whatcreator: Creator of the fig/const searched
+    whatid: Id of the fig/const searched
+
     '''
 
-    lim = 50 # we check the first 50 results in the DB :)
+    lim = 50 # we check the first 50 results in the DB. 
+    # This should be expanded to a page-by-page system where the user can grab the next fifty more easily.
     results = None
 
     if whatref:
@@ -338,10 +412,13 @@ def confind(whatnum:float = False, whatref:str = False, whatname:str = False, wh
     
     return results
 
-
 def find_user(userid: int) -> users:
     '''
-    three guesses what this does
+    Three guesses what this does.
+
+    userid: Id of user.
+
+    Returns the user object of the user found, or None if no user found.
     '''
     user = users.query.filter_by(_id = userid).first()
     if user == None:
@@ -379,79 +456,63 @@ def inittable():
     if newtable:
         vals = generate_table()
         for i in vals:
-            b = figs(i[0], i[1], "Site-Generated Constant", "Bowie", "Generated by site") # ADDING FIGS TO DB !!!
+            b = figs(i[0], i[1], "Site-Generated Constant", "Bowie", "Generated by site") 
             db.session.add(b)
             print(f'{i[1]} = {i[0]}')
         db.session.commit()
 
     active = figs.query.order_by(figs.num.asc()).first()
     tb = figs.query.order_by(figs.num).all()
-    executionblock = []
+    graveyard = [] # where constants go to die
+    deletethiscounter = []
+
     for i in tb:
         if i.num != active.num:
-            active = i
-            b = solves(active._id, active.ref)
-            print("we cook")
+            # this constant doesn't exist yet, so we're gonna set it up
+
+            active = i 
+
+            try: 
+                k = float(active.ref) # is active.ref a float
+            except:
+                # wheee its a string
+                b = solves(active._id, active.ref)
+                print("we cook")
+            else:
+                # its a float so we just ignore it
+                pass
+
         else:
-            b = solves(active._id, i.ref)
+            # this constant already exists, so we're just gonna add this solution as a solves to the existing constant
+            
+            try: 
+                k = float(active.ref) # is active.ref a float
+            except:
+                # wheee its a string
+                b = solves(active._id, i.ref)
+            else:
+                # its a float so we just ignore it
+                deletethiscounter.append(active.ref)
+
+
+            # the generating function actually just makes fig objects so we have to go back and delete them later, so we label them here
             i.ref = "KILLME"
-            executionblock.append(i._id)
-            print("we work")
+            graveyard.append(i._id)
+            print("we work ")
+
         db.session.add(b)
     db.session.commit()
     figs.query.filter_by(ref = "KILLME").delete()
 
 
     print("we COOK")
+    print(deletethiscounter)
     db.session.commit()
         
     return
 
 
 
-'''
-# deprecated i think
-def add_fig_vote(username: str, figid: int, like: bool):
-
-    Add vote entry to db, connecting user and post _ids.
-    Like bool represents wether the post is liked or disliked.
-    add_fig_vote will return an error message string if there's an error, and 
-    otherwise will return False.
-
-
-    usr = users.query.filter_by(name = username).first()
-    if not usr:
-        return "SessionData error. User not found!"
-    
-    fig = figs.query.filter_by(_id = figid).first()
-    if not fig:
-        return "ID error. Constant not found!"
-    
-    existinglike = votes.query.filter_by(userid = usr._id, figid = fig._id).first()
-    if existinglike:
-        if existinglike.upvote != like: # if the users vote has changed
-            if existinglike.upvote: # if the user liked but now dislikes
-                existinglike.upvote = False
-            else: # if the user disliked but now likes
-                existinglike.upvote = True
-        else:
-            return "Bro already voted"
-
-
-    if not like:
-        fig.votes -= 1
-    else:
-        fig.votes += 1
-    
-    newlike = votes(usr._id, fig._id, like)
-    db.session.add(newlike)
-
-    db.session.commit()
-    
-    return False
-
-'''
-
 if __name__ == "__main__":
     # do nothin
-    print("try running main.py bro")
+    print("Try running main.py!")

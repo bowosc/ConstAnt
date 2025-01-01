@@ -1,6 +1,7 @@
 import math
 
 #TODO
+# probably let it handle X as a multiplication operator in addition to *.
 # Imaginary number handling
 # Test more edge-case, weird notations?
 
