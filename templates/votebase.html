@@ -16,7 +16,7 @@
             elm.classList.toggle("unvoted_button");
             elm.classList.toggle("voted_button");
 
-            fetch(`/figvote/${index}/toggle`)
+            fetch(`/constvote/${index}/toggle`)
                 .then(function(response) {
                     return response.text();
                 }).then(function(votescount) {

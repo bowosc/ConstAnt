@@ -164,17 +164,17 @@ def viewconst(id: int):
     soldata = confind.solfind(id)
     return render_template('viewconst.html', result = result, soldata = soldata)
 
-@app.route("/figvote/<int:figid>/<action>", methods=['POST', 'GET'])
-def figvote(figid: int, action: str = 'toggle'):
+@app.route("/constvote/<int:constid>/<action>", methods=['POST', 'GET'])
+def constvote(constid: int, action: str = 'toggle'):
     '''
-    Toggles a vote to a fig/const from the user in session.
+    Toggles a vote to a const/const from the user in session.
     Action should be toggle unless you're testing. For development, 'like' and 'unlike' are alternatives.
     '''
     if 'user' not in session:
         flash('Please log in to vote!', 'usererror')
         return redirect(url_for("login"))
 
-    return str(confind.voteaction(figid, action, session["user"]))
+    return str(confind.voteaction(constid, action, session["user"]))
 
 
 # this aint a route

@@ -11,7 +11,7 @@ sqrttwo = math.sqrt(2)
 sqrtthree = math.sqrt(3)
 
 
-class figs(db.Model):
+class consts(db.Model):
     _id = db.Column(db.Integer, primary_key=True)
     num = db.Column(db.Float)
     ref = db.Column(db.String(255))
@@ -20,7 +20,7 @@ class figs(db.Model):
     notes = db.Column(db.Text)
     date = db.Column(DateTime, default=datetime.now())
 
-    votes = db.relationship('figvotes', backref='post', lazy='dynamic')
+    votes = db.relationship('constvotes', backref='post', lazy='dynamic')
     
     def __init__(self, num, ref, name, creator, notes):
         self.num = num
@@ -32,7 +32,7 @@ class figs(db.Model):
 
 class solves(db.Model):
     _id = db.Column(db.Integer, primary_key=True)
-    fid = db.Column(db.Integer) # id of fig its attached to
+    fid = db.Column(db.Integer) # id of const its attached to
     sol = db.Column(db.String(255)) # equation
     date = db.Column(DateTime, default=datetime.now())
 
@@ -41,16 +41,16 @@ class solves(db.Model):
         self.sol = sol
         # no datetime def needed B)
 
-class figvotes(db.Model):
+class constvotes(db.Model):
     _id = db.Column(db.Integer, primary_key=True)
     userid = db.Column('userid', db.Integer, db.ForeignKey('users._id'))
-    figid = db.Column('figid', db.Integer, db.ForeignKey('figs._id'))
+    constid = db.Column('constid', db.Integer, db.ForeignKey('consts._id'))
     upvote = db.Column(db.Boolean)
     super = db.Column(db.Boolean)
 
-    def __init__(self, userid, figid):
+    def __init__(self, userid, constid):
         self.userid = userid
-        self.figid = figid
+        self.constid = constid
         self.upvote = None #[NOTE: DEPRECIATED] false if downvote, true if upvote. 
         self.super = False # unused rn
 
@@ -66,24 +66,24 @@ class users(db.Model):
     creationdate = db.Column(DateTime, default=datetime.now())
 
     voted = db.relationship(
-        'figvotes',
-        foreign_keys='figvotes.userid', 
+        'constvotes',
+        foreign_keys='constvotes.userid', 
         backref='users', 
         lazy='dynamic'
         )
 
-    # currently only set up for figs, but named more ambiguously so that it could be expanded later
-    def upvote_post(self, fig):
-        if not self.has_upvoted_post(fig):
-            upvote = figvotes(userid=self._id, figid=fig._id)
+    # currently only set up for consts, but named more ambiguously so that it could be expanded later
+    def upvote_post(self, const):
+        if not self.has_upvoted_post(const):
+            upvote = constvotes(userid=self._id, constid=const._id)
             db.session.add(upvote)
 
-    def downvote_post(self, fig):
-        if self.has_upvoted_post(fig):
-            figvotes.query.filter_by(userid=self._id, figid=fig._id).delete()
+    def downvote_post(self, const):
+        if self.has_upvoted_post(const):
+            constvotes.query.filter_by(userid=self._id, constid=const._id).delete()
 
-    def has_upvoted_post(self, fig):
-        return figvotes.query.filter(figvotes.userid == self._id, figvotes.figid == fig._id).count() > 0
+    def has_upvoted_post(self, const):
+        return constvotes.query.filter(constvotes.userid == self._id, constvotes.constid == const._id).count() > 0
     
     def __init__(self, name, pw, email):
         self.name = name
@@ -95,34 +95,34 @@ class users(db.Model):
         self.isverified = False
 
 
-def voteaction(figid: int, action: str, userid: int) -> int:
+def voteaction(constid: int, action: str, userid: int) -> int:
     '''
-    Runs when a user clicks the "vote" button on a fig. 
-    Basically just a toggle switch for this user's vote on this fig.
+    Runs when a user clicks the "vote" button on a const. 
+    Basically just a toggle switch for this user's vote on this const.
 
-    figid: id of the fig in question.
+    constid: id of the const in question.
     userid: id of the user in question.
     action: 'toggle', 'like' or 'unlike'. Pretty much only toggle should be used, like and unlike exist only for testing right now.
 
-    Returns the amount of votes on the fig.
+    Returns the amount of votes on the const.
     '''
 
-    fig = figs.query.filter_by(_id=figid).first_or_404() # special tech B)
+    const = consts.query.filter_by(_id=constid).first_or_404() # special tech B)
     usr = users.query.filter_by(_id=userid).first()
 
     if action == 'toggle':
-        if usr.has_upvoted_post(fig):
-            usr.downvote_post(fig)
+        if usr.has_upvoted_post(const):
+            usr.downvote_post(const)
         else:
-            usr.upvote_post(fig)
+            usr.upvote_post(const)
     elif action == 'like':
-        usr.upvote_post(fig)
+        usr.upvote_post(const)
     elif action == 'unlike':
-        usr.downvote_post(fig)
+        usr.downvote_post(const)
 
     if action:
         db.session.commit()
-    return fig.votes.count()
+    return const.votes.count()
 
 def new_user(thename: str, thepw: str, theemail: str) -> users:
     '''
@@ -198,18 +198,18 @@ def is_email_valid(email: str) -> bool:
 
 def add_user_const(userid:int, constname:str, expression:str = 0, notes:str = None) -> float | str:
     '''
-    Adds a user const/fig to the database. Checks if it already exists, too.
+    Adds a user const to the database. Checks if it already exists, too.
 
-    userid: id of the user adding the const/fig
-    constname: name of the const/fig
-    expression: expression that computes the const/fig
-    notes: notes for the const/fig
+    userid: id of the user adding the const
+    constname: name of the const
+    expression: expression that computes the const
+    notes: notes for the const
 
     Note that the returned value will be either a string (error msg) for user error or a float (the const) for a success.
     '''
 
-    n = figs.query.filter_by(name=constname).first() 
-    l = figs.query.filter_by(ref=expression).first()
+    n = consts.query.filter_by(name=constname).first() 
+    l = consts.query.filter_by(ref=expression).first()
     if n:
         return "A constant with this name already exists!"
     elif l:
@@ -220,7 +220,7 @@ def add_user_const(userid:int, constname:str, expression:str = 0, notes:str = No
         print("RPN error!")
         return value
     else:
-        m = figs.query.filter_by(num=value).first()
+        m = consts.query.filter_by(num=value).first()
         
         if m:
             if not solves.query.filter_by(sol=expression).first():
@@ -233,9 +233,9 @@ def add_user_const(userid:int, constname:str, expression:str = 0, notes:str = No
         
         else:
             theuser = users.query.filter_by(_id = userid).first()
-            b = figs(value, expression, constname, theuser.name, notes)
+            b = consts(value, expression, constname, theuser.name, notes)
             db.session.add(b)
-            bingus = figs.query.filter_by(num = value).first()
+            bingus = consts.query.filter_by(num = value).first()
             s = solves(bingus._id, bingus.ref)
             db.session.add(s)
 
@@ -335,6 +335,9 @@ def diversify(d: list[float]) -> list[list[float, str]]:
             c = 1/5
         case "(1/6)":
             c = 1/6
+        case _:
+            # default case
+            c = d
 
     al.append([c, f'{d}'])
     al.append([math.sin(c), f'sin({d})']) # add options for radians
@@ -357,35 +360,35 @@ def diversify(d: list[float]) -> list[list[float, str]]:
 
 def does_table_exists():
     '''
-    Returns True if figs table exists.
-    Returns false if figs table doesn't exist or is empty.
+    Returns True if consts table exists.
+    Returns false if consts table doesn't exist or is empty.
     '''
-    if figs.query.order_by(figs.ref).limit(25).count() > 20: # check if there's anything in the db
+    if consts.query.order_by(consts.ref).limit(25).count() > 20: # check if there's anything in the db
         return True
     else:
         return False
 
 def solfind(whatid:int) -> list[solves]:
     '''
-    Returns a list of expressions that result in the value of the fig.
+    Returns a list of expressions that result in the value of the const.
 
-    whatid: Id of fig in question
+    whatid: Id of const in question
     
     '''
     results = solves.query.filter_by(fid = whatid).order_by(func.length(solves.sol)).all()
     return results
 
 # the big one
-def confind(whatnum:float = False, whatref:str = False, whatname:str = False, whatcreator:str = False, whatid:int = False) -> list[figs]:
+def confind(whatnum:float = False, whatref:str = False, whatname:str = False, whatcreator:str = False, whatid:int = False) -> list[consts]:
     '''
-    Returns a list of results matching the query entered, searching the figs table.
+    Returns a list of results matching the query entered, searching the consts table.
     As of now, confind() should only be used with one search argument at a time.
 
-    whatnum: Value of the fig/const
-    whatref: Expression that results in the fig/const's value (just use a calculator bro)
-    whatname: Name of the fig/const searched
-    whatcreator: Creator of the fig/const searched
-    whatid: Id of the fig/const searched
+    whatnum: Value of the const
+    whatref: Expression that results in the const's value (just use a calculator bro)
+    whatname: Name of the const searched
+    whatcreator: Creator of the const searched
+    whatid: Id of the const searched
 
     '''
 
@@ -394,15 +397,15 @@ def confind(whatnum:float = False, whatref:str = False, whatname:str = False, wh
     results = None
 
     if whatref:
-        results = figs.query.filter(figs.ref.contains(whatref)).order_by(figs.creator).limit(lim).all()
+        results = consts.query.filter(consts.ref.contains(whatref)).order_by(consts.creator).limit(lim).all()
     elif whatname:
-        results = figs.query.filter(figs.name.contains(whatname)).order_by(figs.creator).limit(lim).all()
+        results = consts.query.filter(consts.name.contains(whatname)).order_by(consts.creator).limit(lim).all()
     elif whatcreator:
-        results = figs.query.filter(figs.creator.contains(whatcreator)).order_by(figs.creator).limit(lim).all()
+        results = consts.query.filter(consts.creator.contains(whatcreator)).order_by(consts.creator).limit(lim).all()
     elif whatnum:
-        results = figs.query.filter(figs.num.startswith(whatnum)).order_by(figs.num).limit(lim).all() # this is the one used most 
+        results = consts.query.filter(consts.num.startswith(whatnum)).order_by(consts.num).limit(lim).all() # this is the one used most 
     elif whatid:
-        results = figs.query.filter_by(_id = whatid).first()
+        results = consts.query.filter_by(_id = whatid).first()
     else:
         return 'No arguments parsed.'
 
@@ -456,13 +459,13 @@ def inittable():
     if newtable:
         vals = generate_table()
         for i in vals:
-            b = figs(i[0], i[1], "Site-Generated Constant", "Bowie", "Generated by site") 
+            b = consts(i[0], i[1], "Site-Generated Constant", "Bowie", "Generated by site") 
             db.session.add(b)
             print(f'{i[1]} = {i[0]}')
         db.session.commit()
 
-    active = figs.query.order_by(figs.num.asc()).first()
-    tb = figs.query.order_by(figs.num).all()
+    active = consts.query.order_by(consts.num.asc()).first()
+    tb = consts.query.order_by(consts.num).all()
     graveyard = [] # where constants go to die
     deletethiscounter = []
 
@@ -495,14 +498,14 @@ def inittable():
                 deletethiscounter.append(active.ref)
 
 
-            # the generating function actually just makes fig objects so we have to go back and delete them later, so we label them here
+            # the generating function actually just makes const objects so we have to go back and delete them later, so we label them here
             i.ref = "KILLME"
             graveyard.append(i._id)
             print("we work ")
 
         db.session.add(b)
     db.session.commit()
-    figs.query.filter_by(ref = "KILLME").delete()
+    consts.query.filter_by(ref = "KILLME").delete()
 
 
     print("we COOK")
