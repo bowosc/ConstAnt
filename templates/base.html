@@ -1,27 +1,62 @@
-
 <header style="text-align: center;">
     <link rel="stylesheet" type="text/css" href="../static/styles.css" />
+    <title>ConstAnt</title>
+
     <div class="navbar">
-        <h1>
-            <a href="/">home</a> &nbsp;&nbsp;&nbsp; 
-            <a href="/newconst">+</a> &nbsp;&nbsp;&nbsp; 
-            {% if "user" in session %}
-                <a href="/logout">logout</a> &nbsp;&nbsp;&nbsp;
-                <span style="font-size: medium;">Logged in as {{ user.name }} </span>  &nbsp;&nbsp;&nbsp;
-            {% else %}
-                <a href="/register">register</a> &nbsp;&nbsp;&nbsp;
-                <a href="/login">login</a> &nbsp;&nbsp;&nbsp;
-            {% endif %}
-        </h1>
+        <div class="pageoption">
+            <a href="/">ConstAnt</a>
+        </div>
+        <div class="pageoption">
+            <a href="/about">About</a>
+        </div>
+        <div class="pageoption">
+            <a href="/">Search</a>
+        </div>
+        <div class="pageoption">
+            <a href="/newconst">Add Const</a>
+        </div>
+
+        {% if "user" in session %}
+        <div class="pageoption">
+            <a href="/logout">Log Out</a>
+        </div>
+
+        <span style="font-size: medium;">Logged in as {{ user.name }} </span>
+        {% else %}
+        <div class="pageoption">
+            <a href="/login">Log In</a>
+        </div>
+        <div class="pageoption">
+            <a href="/register">Register</a>
+        </div>
+
+        {% endif %}
     </div>
 </header>
 
+<div> <!-- wrapper div makes the pos: abs work-->
 {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
         {% for category, message in messages %}
-            <p class="flashed {{ category }}">{{ message }}</p>
+                <div class="flashed {{ category }}">{{ message }}</div>
         {% endfor %}
     {% endif %}
 {% endwith %}
+</div>
 
-{% block body %}{% endblock %}
+<main>
+    {% block body %}{% endblock %}
+</main>
+
+
+<footer>
+    <div class="lvlone">
+        <div class="spread"><a href="/">Search</a></div>
+        <div class="spread"><a href="newconst">Add Const</a></div>
+        <div class="spread"><a href="register">Register</a></div>
+        <div class="spread"><a href="login">Log In</a></div>
+        <div class="spread"><a href="logout">Log Out</a></div>
+    </div>
+    
+    <div class="spread"><a href="https://www.bowmanedebohls.com">ConstAnt by Bowman Edebohls</a></div>
+</footer>

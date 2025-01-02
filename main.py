@@ -4,6 +4,11 @@ import confind
 from datetime import timedelta
 '''
 TODO
+Move table generation functions to their own .py file
+
+
+random placeholder text in search bar
+
 social medialization
     order numbers by likes
 
@@ -27,10 +32,13 @@ UI/UX??
 
 
 later:
-account viewing page
-number line viewer
+different search methods
 encrypt passwords
+account viewing page
+
 comments
+number line viewer
+
 '''
 
 app = Flask(__name__)
@@ -77,8 +85,8 @@ def home():
 
             results = confind.confind(whatnum = request.form['searchbar'])
 
-            if isinstance(results, str): # if confind returns an error msg
-                flash(results, 'error')
+            if isinstance(results, str): # if confind finds no results
+                #flash(results, 'searcherror')
                 results = None
                 redirect(url_for("home"))
 

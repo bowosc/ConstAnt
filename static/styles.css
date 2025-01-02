@@ -1,17 +1,38 @@
-html, body {
-    margin: 0;
-    height: 100%;
-    color: white;
-    background-color: #141414;
+@font-face {
+    font-family: Latexy;
+    src: url(latinmodern-math.otf);
 }
 
-.row {
-    display: flex;
+body {
+    font-family: Latexy;
+    color: white;
+    background-color: #141414;
+    background-image: url('images/circlesbg.webp');
+    
+    min-height: 100vh;
+    margin: 0;
 }
-  
-.column {
-    flex: 50%;
+
+
+
+
+a {
+    text-decoration: none;
+    color:inherit;
 }
+
+.centered {
+    text-align: center;
+    margin: auto;
+}
+
+.maintitle {
+    font-size: 50px;
+    font-weight: bolder;
+    padding-bottom: 20px;
+    
+}
+
 
 .newconstinput {
     width: 30%;
@@ -19,33 +40,113 @@ html, body {
 }
 
 .navbar {
-    background-color: rgb(0, 39, 86);
+    background-color: transparent;
     color: #ffffff;
     width: 100%;
-    height: 5%;
-    
+    display: flex;
+    justify-content: space-evenly;
+    padding-top: 5px;
+
 }
 
-a {
-    text-decoration: none;
+.navbar .pageoption {
+    position: relative;
+    height: 25px;
+
+    width: 100%;
+
+    margin: 10px;
+
+    font-size: 20px;
+    font-weight: bolder;
+
+    border-radius: 0px;
+    border-width: 4px;
+    border-color:rgb(4, 136, 213);
+
+
 }
+
+.navbar a {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1; /* Ensures the link is on top */
+}
+
+
+
+
+
+.numlink {
+    
+    width:100%;
+    height:100%;
+    top:0;
+    left: 0;
+
+    z-index: 1;
+}
+
+.numboxcolumnwrapper{
+    margin: auto;
+    width: 60%;
+    min-width: 750px;
+}
+
+
 
 .numbox {
-    background-color:#003D82;
-    padding: 10px;
+    background: rgba( 20, 20, 58, 0.25 );
+    box-shadow: 0 8px 32px 0 rgba( 31, 38, 135, 0.37 );
+    backdrop-filter: blur( 4px );
+    -webkit-backdrop-filter: blur( 4px );
+    border-radius: 10px;
+    border: 1px solid rgba( 255, 255, 255, 0.18 );
+
     text-align: left;
-    height: 210px;
-    width: 100%;
+
+
+    padding-left: 15px;
+    padding-right: 15px;
+
+    padding-top: 30px;
+    padding-bottom: 30px;
+
+    font-size: 20px;
+
+    color: white;
+    overflow: hidden;
 }
 
-.innernumbox {
-    height: 90%;
-    width: 90%;
-    background-color:#ffffff;
-    margin: auto;
-    padding: 5px;
-    color: white;
+.numbox :hover {
+    background-color:red;
+
 }
+
+.numbox .left{
+    float:left;
+}
+
+.numbox .right{
+    width: 43%;
+    float:right;
+    overflow: hidden;
+}
+
+.numbox .constname {
+    font-size: 20px;
+    font-style: italic;
+}
+
+.numbox .number {
+    font-size: 60px;
+}
+
+
+
 
 .votebutton {
     width: 10%;
@@ -63,17 +164,101 @@ a {
     background-color: rgb(190, 190, 190);
 }
 
-.centered {
-    text-align: center;
+
+.searchbarBox {
+    position: relative;
+
+    
+    
     margin: auto;
-}
-
-.homesearch {
     width: 40%;
-
+    
+    background: rgba( 43, 146, 239, 0.25 );
+    box-shadow: 0 8px 32px 0 rgba( 31, 38, 135, 0.37 );
+    backdrop-filter: blur( 17.5px );
+    -webkit-backdrop-filter: blur( 17.5px );
+    border-radius: 60px;
+    border: 5px solid rgba( 255, 255, 255, 0.18 );
+    border-style: inset;
+    justify-content: flex-start;
 }
+
+.searchbarBox form {
+    width: 100%;
+    display: flex;
+    align-items: center;
+}
+
+
+.searchbarBox input[type=text] {
+    float:left;
+    width: 90%;
+    height: 55px;
+
+
+    margin-top: 13px;
+
+    padding-left: 20px;
+
+    
+    font-family: Latexy;
+    font-size: 40px;
+    color: white;
+        
+    background-color: transparent;
+    border-width: 0;
+    outline: none;
+    box-shadow: none;
+
+    overflow:hidden;
+}
+
+.searchbarBox .buttone {
+    width: 10%;
+    height: 40px;
+    margin-right: 10px;
+    margin-top: 10px;
+    background-color: transparent;
+}
+
+.searchbarBox .buttone button{
+    width: 100%;
+    height: 100%;
+    background-image: url("images/search-icon.png");
+    background-repeat: no-repeat; /* Ensures icon does not repeat */
+    background-size: contain; /* Scales icon to fit button */
+    background-position: center; /* Centers the icon */
+    background-color: transparent;
+    border-width: 0;
+    outline: none;
+    box-shadow: none;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 .flashed {
+    position: absolute;
+    width: 12%;
+    padding: 10px;
+    margin: 10px;
+    
     font-size: medium;
     color: black;
     text-align: center;
@@ -92,4 +277,40 @@ a {
 .success {
     color: green;
     background-color: beige;
+}
+
+
+/* again */
+body {
+    display: flex;
+    flex-direction: column;
+  }
+  
+main {
+    min-height: 100vh;
+}
+
+footer {
+    height: 80px;
+    
+    background-color: black;
+    text-align: center;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    width: 100%;
+
+    flex:1;
+
+}
+
+footer .lvlone {
+    display: flex;
+    justify-content:space-around;
+    padding-bottom: 40px;
+}
+
+footer .spread {
+    display: block;
+    font-size: 18px;
+    color: white;
 }

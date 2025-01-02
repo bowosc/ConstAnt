@@ -1,57 +1,52 @@
 {% extends "base.html" %}
 
 {% block body %}
-<body class="centered">
+<body>
     <br>
-    <h1 class="centered"> Home </h1>
-    <div class="homesearch centered">
-        <p>------------</p>
-
-        <form action="#" method="post">
-            <input name="searchbar" type="text" autocomplete="off" placeholder="rock a numbah...">
-            <input name="submit" type="submit">
-        </form>
+    <div class="centered">
+        <div class="maintitle"> ConstAnt </div>
+        <div class="searchbarBox">
+                <form action="#" method="post">
+                <input name="searchbar" type="text" autocomplete="off" placeholder="Favorite number?">
+                <div class="buttone">
+                    <button type="submit"><i class="fa fa-search"></i></button>
+                </div>
+            </form>
+            
+        </div>
 
         {% if results and query %}
             <h3>Results for {{query}}:</h3>
+        {% elif query %}
+            <h3>No results for {{query}}.</h3>
         {% endif %}
-        <div class="row">
-            <div class="column">
-                {% if results != None %}
-                    {% for result in results %}
-                    
-                    {% include 'votebase.html' %}
-                    
-                    <a href="/viewconst/{{result._id}}">
-                        <div class="numbox">
-                            <div class="innernumbox">
+        <div class="numboxcolumnwrapper">
 
-                                <h3>{{result.name}}</h3>
-                                <h3>{{result.num}}</h3>
-                                <p>by {{result.creator}}</p>
-                                <p>Sample Expression: {{result.ref}}</p>
-
-                                <p><a href="{{ url_for('constvote', constid=result._id, action='like') }}">[VOTE]</a><a href="{{ url_for('constvote', constid=result._id, action='unlike') }}">[UNVOTE]</a></p>
-                            </div>
+            {% if results != None %}
+                {% for result in results %}
+                
+            <!--{% include 'votebase.html' %}-->
+                
+                <a class="numlink" href="/viewconst/{{result._id}}">
+                    <div class="numbox">
+                        <div class="left">
+                            <span class="number">{{result.shortnum}}</span>
                         </div>
-                    </a>
-                    <br>
-                    <br>
-                    {% endfor %}
+                        <div class="right">
+                            <span class="constname">{{result.name}}</span>
+                            <br>
+                            by {{result.creator}}
+                            <br>
+                            Ex: {{result.ref}}
+                        </div>
+                    </div>
+                </a>
 
-                {% else %}
-
-                    <p> Search something! </p>
-
-                {% endif %}
-            </div>
+                <br>
+                {% endfor %}
+            {% endif %}
         </div>
     </div>
 </body>
-
-<script src="https://code.jquery.com/jquery-3.5.1.js"
-          integrity="sha256-QWo7LDvxbWT2tbbQ97B53yJnYU3WhH/C8ycbRAkjPDc="
-          crossorigin="anonymous">
-</script>
 
 {% endblock %}

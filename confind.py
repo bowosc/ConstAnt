@@ -10,10 +10,23 @@ phi = (1 + 5 ** 0.5) / 2 # golden ratio
 sqrttwo = math.sqrt(2)
 sqrtthree = math.sqrt(3)
 
+def shortenNum(num: float) -> str:
+    '''
+    Shortens a const value down to a 13-character alternative.
+    '''
+    num = str(num)
+    if "e" in num:
+        parts = num.split("e")
+        correctlen = 13 - len(parts[1])
+        return parts[0][:correctlen] + "e" + parts[1] # janky but functional :)
+    else:
+        return num[:13]
+    
 
 class consts(db.Model):
     _id = db.Column(db.Integer, primary_key=True)
     num = db.Column(db.Float)
+    shortnum = db.Column(db.String) # for display purposes only :)
     ref = db.Column(db.String(255))
     name = db.Column(db.String(255))
     creator = db.Column(db.Integer)
@@ -24,6 +37,7 @@ class consts(db.Model):
     
     def __init__(self, num, ref, name, creator, notes):
         self.num = num
+        self.shortnum = shortenNum(num)
         self.ref = ref
         self.name = name
         self.creator = creator
@@ -451,9 +465,12 @@ def init_default_user():
 
 def inittable():
     '''
-    Generate values for the table, print em all out. 
+    Generate values for the table, prints 'em all out. 
     DOES NOT CHECK IF TABLE IS FULL ALREADY! Don't run this function if your table is already populated.
     No args needed B)
+
+    NOTE: currently full of print() functions for debugging purposes. 
+    I kept removing them and adding them back in and figured it's just easier to keep them in here.
     '''
     newtable = True
     if newtable:
