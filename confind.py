@@ -1,27 +1,16 @@
-from flask_sqlalchemy import SQLAlchemy, session
-import math, re
+from flask_sqlalchemy import SQLAlchemy
+import re
 from datetime import datetime
 from sqlalchemy import func, DateTime, delete
 from rpn import rpn
+import carpentry
+from sympy import Expr, evalf, sympify
+
+PREGEN_CONST_CREATOR = "Server"
+PREGEN_CONST_NAME = "Automatically generated constant"
+PREGEN_CONST_NOTES = ""
 
 db = SQLAlchemy()
-
-phi = (1 + 5 ** 0.5) / 2 # golden ratio
-sqrttwo = math.sqrt(2)
-sqrtthree = math.sqrt(3)
-
-def shortenNum(num: float) -> str:
-    '''
-    Shortens a const value down to a 13-character alternative.
-    '''
-    num = str(num)
-    if "e" in num:
-        parts = num.split("e")
-        correctlen = 13 - len(parts[1])
-        return parts[0][:correctlen] + "e" + parts[1] # janky but functional :)
-    else:
-        return num[:13]
-    
 
 class consts(db.Model):
     _id = db.Column(db.Integer, primary_key=True)
@@ -109,6 +98,18 @@ class users(db.Model):
         self.isverified = False
 
 
+def shortenNum(num: float) -> str:
+    '''
+    Shortens a const value down to a 13-character alternative.
+    '''
+    num = str(num)
+    if "e" in num:
+        parts = num.split("e")
+        correctlen = 13 - len(parts[1])
+        return parts[0][:correctlen] + "e" + parts[1] # janky but functional :)
+    else:
+        return num[:13]
+    
 def voteaction(constid: int, action: str, userid: int) -> int:
     '''
     Runs when a user clicks the "vote" button on a const. 
@@ -210,7 +211,7 @@ def is_email_valid(email: str) -> bool:
     else:
         return False
 
-def add_user_const(userid:int, constname:str, expression:str = 0, notes:str = None) -> float | str:
+def add_user_const(userid:int, constname:str, expression:str, isLatex: bool = False, notes:str = None) -> float | str:
     '''
     Adds a user const to the database. Checks if it already exists, too.
 
@@ -229,7 +230,8 @@ def add_user_const(userid:int, constname:str, expression:str = 0, notes:str = No
     elif l:
         return "A constant with this expression already exists!"
     
-    value = rpn.calculateInfix(expression)
+    #value = expressions.solve(expression, isLatex)
+    value = Expr.evalf(sympify(expression))
     if isinstance(value, str): # if rpn returned a string, aka if its an error msg
         print("RPN error!")
         return value
@@ -259,118 +261,73 @@ def add_user_const(userid:int, constname:str, expression:str = 0, notes:str = No
     print("we got there appt")
     return b.num
 
-def generate_table() -> list[list[float, str]]: 
+def inittable():
     '''
-    generate a mf table
+    Generate values for the table, prints 'em all out. 
+    DOES NOT CHECK IF TABLE IS FULL ALREADY! Don't run this function if your table is already populated.
+    No args needed B)
+
+    NOTE: currently full of print() functions for debugging purposes. 
+    I kept removing them and adding them back in and figured it's just easier to keep them in here.
     '''
-    constants = ["pi", "e", "sqrt(2)", "sqrt(3)", "phi", "(1/2)", "(1/3)", "(1/4)", "(1/5)", "(1/6)", 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] 
+    newtable = True
+    if newtable:
+        vals = carpentry.generate_table()
+        for i in vals:
+            b = consts(num=i[0], ref=i[1], name=PREGEN_CONST_NAME, creator=PREGEN_CONST_CREATOR, notes=PREGEN_CONST_NOTES) 
+            db.session.add(b)
+            print(f'{i[1]} = {i[0]}')
+        db.session.commit()
 
-    l = []
-    for c in constants: # apply unary operations
-        l.extend(diversify(c))
-        print(f"diversified {c}")
-    
-    l = binary_operations(l)
-    return l
-    
-def binary_operations(l: list[list[float, str]]) -> list[list[float, str]]:
-    '''
-    Executes a series of various binary operations on the inputted list.
+    active = consts.query.order_by(consts.num.asc()).first()
+    tb = consts.query.order_by(consts.num).all()
+    graveyard = [] # where constants go to die
+    deletethiscounter = []
 
-    l: A list of floats.
+    for i in tb:
+        if i.num != active.num:
+            # this constant doesn't exist yet, so we're gonna set it up
 
-    Returns an expanded copy of the list including variants with various binary operations applied.
-    '''
+            active = i # why?
+
+            try: 
+                k = float(active.ref) # is active.ref a float
+            except:
+                # wheee its a string
+                b = solves(active._id, active.ref)
+                print("we cook")
+            else:
+                # its a float so we just ignore it
+                pass
+
+        else:
+            # this constant already exists, so we're just gonna add this solution as a solves to the existing constant
+            
+            try: 
+                k = float(active.ref) # is active.ref a float
+            except:
+                # wheee its a string
+                b = solves(active._id, i.ref)
+            else:
+                # its a float so we just ignore it
+                deletethiscounter.append(active.ref)
 
 
-    # NOTE: DO THIS IN O(NlogN) with the better algorithm, there's no excuse for it still being O(N^2) :/
+            # the generating function actually just makes const objects so we have to go back and delete them later, so we label them here
+            i.ref = "KILLME"
+            graveyard.append(i._id)
+            print("we work ")
 
-    al = [] # alt list, so we don't screw up the for loop
-    for i in l: # for item in that one list, apply binary operations
-        for j in l:
-                # Pretty much unreadable. there's stuff here designed to stop random duplicates from appearing
-            if i[0] > 0 and j[0] != 1 and j[0] != 0:
-                    try:
-                        print(i[0])
-                        al.append([math.pow(i[0], (1 / j[0])), f'{i[1]} ^ (1/{j[1]})'])
-                        al.append([math.pow(i[0], (-1 * j[0])), f'{i[1]} ^ (-{j[1]})'])
-                        al.append([math.pow(i[0], j[0]), f'{i[1]} ^ {j[1]}'])
-                    except OverflowError:
-                        print("too big lol")
+        db.session.add(b)
+    db.session.commit()
+    consts.query.filter_by(ref = "KILLME").delete()
 
-            if j[0] != 0 and i[0] != 0:
-                if i[0] * j[0] != i[0] and i[0] * j[0] != j[0]:
-                    al.append([i[0] * j[0], f'{i[1]} * {j[1]}'])
-                
-                if j[0] != i[0]:
-                    if j[0] != 0:
-                        if i[0] / j[0] != i[0] and i[0] / j[0] != j[0]:
-                            al.append([i[0] / j[0], f'{i[1]} / {j[1]}'])
-                            
-                    if i[0] + j[0] != i[0] and i[0] + j[0] != j[0]:
-                        al.append([i[0] + j[0], f'{i[1]} + {j[1]}'])
 
-                    if i[0] - j[0] != i[0] and i[0] - j[0] != j[0]:
-                        al.append([i[0] - j[0], f'{i[1]} - {j[1]}'])
-    l.extend(al)
-    return l
-
-def diversify(d: list[float]) -> list[list[float, str]]: 
-    '''
-    d: list of numbers to start out with.
-
-    Returns a list of lists of c with unary operations applied.
-
-    Sublist format: [constant, 'expression to find constant']
-    ex: [sin(c), 'sin({c})']
-    '''
-    al = []
-    match d:
-
-        # c for constant and constant is for me
-
-        case "pi": 
-            c = math.pi
-        case "e":
-            c = math.e
-        case "phi":
-            c = phi
-        case "sqrt(2)":
-            c = sqrttwo
-        case "sqrt(3)":
-            c = sqrtthree
-        case "(1/2)":
-            c = 1/2
-        case "(1/3)":
-            c = 1/3
-        case "(1/4)":
-            c = 1/4
-        case "(1/5)":
-            c = 1/5
-        case "(1/6)":
-            c = 1/6
-        case _:
-            # default case
-            c = d
-
-    al.append([c, f'{d}'])
-    al.append([math.sin(c), f'sin({d})']) # add options for radians
-    al.append([math.cos(c), f'cos({d})'])
-    al.append([math.tan(c), f'tan({d})'])
-
-    if c <= 1 and c >= -1:
-        al.append([math.asin(c), f'arcsin({d})'])
-        al.append([math.acos(c), f'arccos({d})'])
-
-    al.append([math.atan(c), f'tan({d})'])
-    
-    '''if isinstance(c, int) and c > 0:
-        al.append([math.factorial(c), f'{d}!'])'''
-    
-    if c > 0:
-        al.append([math.log(c, math.e), f'ln({d})'])
-
-    return al
+    print("we COOK")
+    print(deletethiscounter)
+    db.session.commit()
+        
+    return
 
 def does_table_exists():
     '''
@@ -463,73 +420,6 @@ def init_default_user():
     db.session.commit()
     return
 
-def inittable():
-    '''
-    Generate values for the table, prints 'em all out. 
-    DOES NOT CHECK IF TABLE IS FULL ALREADY! Don't run this function if your table is already populated.
-    No args needed B)
-
-    NOTE: currently full of print() functions for debugging purposes. 
-    I kept removing them and adding them back in and figured it's just easier to keep them in here.
-    '''
-    newtable = True
-    if newtable:
-        vals = generate_table()
-        for i in vals:
-            b = consts(i[0], i[1], "Site-Generated Constant", "Bowie", "Generated by site") 
-            db.session.add(b)
-            print(f'{i[1]} = {i[0]}')
-        db.session.commit()
-
-    active = consts.query.order_by(consts.num.asc()).first()
-    tb = consts.query.order_by(consts.num).all()
-    graveyard = [] # where constants go to die
-    deletethiscounter = []
-
-    for i in tb:
-        if i.num != active.num:
-            # this constant doesn't exist yet, so we're gonna set it up
-
-            active = i 
-
-            try: 
-                k = float(active.ref) # is active.ref a float
-            except:
-                # wheee its a string
-                b = solves(active._id, active.ref)
-                print("we cook")
-            else:
-                # its a float so we just ignore it
-                pass
-
-        else:
-            # this constant already exists, so we're just gonna add this solution as a solves to the existing constant
-            
-            try: 
-                k = float(active.ref) # is active.ref a float
-            except:
-                # wheee its a string
-                b = solves(active._id, i.ref)
-            else:
-                # its a float so we just ignore it
-                deletethiscounter.append(active.ref)
-
-
-            # the generating function actually just makes const objects so we have to go back and delete them later, so we label them here
-            i.ref = "KILLME"
-            graveyard.append(i._id)
-            print("we work ")
-
-        db.session.add(b)
-    db.session.commit()
-    consts.query.filter_by(ref = "KILLME").delete()
-
-
-    print("we COOK")
-    print(deletethiscounter)
-    db.session.commit()
-        
-    return
 
 
 

@@ -4,41 +4,54 @@ import confind
 from datetime import timedelta
 '''
 TODO
-Move table generation functions to their own .py file
 
 
-random placeholder text in search bar
-
-social medialization
-    order numbers by likes
 
 
 database content stuff
     expand DB to third level ops
+    expand DB with regular integers up to 2048? 10^6?
 
+
+    BELOW is because of floating point arithmatic, switch to Decimal library for more accurate
+    related to: calculations should be more accurate; e.g. sin(pi)^sqrt(2) != 0 rn
 
     
-    switch to using sympy for math, esp trig functions :/
-        related to: calculations should be more accurate; e.g. sin(pi)^sqrt(2) != 0 rn
-    stop letting in solves that are just straight-up numbers.
 
 idiotproofing
     error msgs and whatever
     prevent ppl from submitting expressions like 2+0+0+0+0 or 2+sin(pi)+sin(pi)+sin(pi)
     
 
+UI/UX
 
-UI/UX??
+random placeholder text in search bar
 
 
 later:
 different search methods
+    - consider decimal?
+    - only integers?
+    - size radius?
+
+
+Highlight specific types of number
+    - popular constants
+        - e, pi, phi, whatever
+    - primes
+
+
+    
+
 encrypt passwords
-account viewing page
 
-comments
+
+
 number line viewer
-
+social medialization
+    order numbers by likes
+    comments
+    account viewing page
 '''
 
 app = Flask(__name__)
