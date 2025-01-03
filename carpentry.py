@@ -1,121 +1,104 @@
-import math
+from sympy import Expr, sympify
 
-phi = (1 + 5 ** 0.5) / 2 # golden ratio
-sqrttwo = math.sqrt(2)
-sqrtthree = math.sqrt(3)
+# expression data format primer:
+# [value: float, expression: str]
 
-def generate_table() -> list[list[float, str]]: 
+def formatForTable(expression: str) -> list[float, str]:
+    '''
+    Formats a string expression into a usable form for the table.
+    Format: [value: float, expression: str]
+    '''
+    return [Expr.evalf(sympify(expression)), expression]
+
+def prepExpressionString(expression:list[float, str]) -> None:
+    '''
+    Preps the string part of the expression data thing IN PLACE into a more user-friendly version.
+    '''
+    expression[1] = expression[1].replace('E', 'e')
+    return
+
+def applyUnaryOps(sub: str) -> list[float, str]:
+    '''
+    Diversifies a single value into a list of expressions by applying different unary operations.
+
+    sub: A value/number/constant.
+
+    Returns a list of expressions in [value: float, expression: str] form.
+    '''
+    result = []
+
+    UNARYOPS = ['sin', 'cos', 'ln', '']
+
+    for i in UNARYOPS:
+        if i == '':
+            expression = f'{sub}'
+        else:
+            expression = f'{i}({sub})'
+        if Expr.evalf(sympify(expression)) > 0:
+            result.append(formatForTable(expression))
+
+
+
+    return result
+
+def applyBinaryOps(asub: list[float, str], bsub: list[float, str], isSecondLayer: bool = False) -> list[float, str]:
+    '''
+    Funnels two subexpressions into a third by applying binary operations.
+
+    asub: First subexpression.
+    bsub: First subexpression.
+    isSecondLayer: Should be true if you want another bubble of parentheses. This will hopefully be deprecated when I figure out a better system for parentheses.
+
+    Returns a third subexpression in the same format as the two in the parameters.
+    '''
+    result = []
+
+    if isSecondLayer:
+        if asub[0] != bsub[0] and asub[0] != 0 and asub[0] != 0:
+            result.append(formatForTable(f'({asub[1]})*({bsub[1]})'))
+            result.append(formatForTable(f'({asub[1]})/({bsub[1]})'))
+            result.append(formatForTable(f'{asub[1]}+{bsub[1]}'))
+        if asub[0] != 0 and bsub[0] != 0:
+            result.append(formatForTable(f'({asub[1]})^({bsub[1]})'))
+    else:
+        if asub[0] != bsub[0] and asub[0] != 0 and asub[0] != 0:
+            result.append(formatForTable(f'{asub[1]}*{bsub[1]}'))
+            result.append(formatForTable(f'{asub[1]}/{bsub[1]}'))
+            result.append(formatForTable(f'{asub[1]}+{bsub[1]}'))
+        if asub[0] != 0 and bsub[0] != 0:
+            result.append(formatForTable(f'{asub[1]}^{bsub[1]}'))
+
+    return result
+
+def generate_table() -> list[list[float, str]]:
     '''
     generate a mf table
     '''
-    constants = ["pi", "e", "sqrt(2)", "sqrt(3)", "phi", "(1/2)", "(1/3)", "(1/4)", "(1/5)", "(1/6)", 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] 
-
+    strtable = []
     table = []
-    for c in constants: # apply unary operations
-        table.extend(diversify(c))
-        print(f"diversified {c}")
-    
-    table = binary_operations(table)
-    return table
-    
-def binary_operations(l: list[list[float, str]]) -> list[list[float, str]]:
-    '''
-    Executes a series of various binary operations on the inputted list.
 
-    l: A list of floats.
+    CONSTANTS = ["pi", "E", "(1/2)", "(1/3)", "(1/4)", "(1/5)", "(1/6)", 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] 
 
-    Returns an expanded copy of the list including variants with various binary operations applied.
-    '''
+    for i in CONSTANTS:
+        strtable.extend(applyUnaryOps(i))
+        print(f"Unary - extended {i}.")
+
+    alttable = []
+    for a in strtable:
+        for b in strtable:
+            alttable.extend(applyBinaryOps(a, b))
+            print(f"Binary - extended {a}, {b}.")
+
+    strtable.extend(alttable)
+    for i in strtable:
+        i=prepExpressionString(i)
+
+    return strtable
 
 
-    # NOTE: DO THIS IN O(NlogN) with the better algorithm, there's no excuse for it still being O(N^2) :/
 
 
-    
 
-    al = [] # alt list, so we don't screw up the for loop
-    for i in l: # for item in that one list, apply binary operations
-        for j in l:
-                # Pretty much unreadable. there's stuff here designed to stop random duplicates from appearing
-            if i[0] > 0 and j[0] != 1 and j[0] != 0:
-                    try:
-                        print(i[0])
-                        al.append([math.pow(i[0], (1 / j[0])), f'{i[1]} ^ (1/{j[1]})'])
-                        al.append([math.pow(i[0], (-1 * j[0])), f'{i[1]} ^ (-{j[1]})'])
-                        al.append([math.pow(i[0], j[0]), f'{i[1]} ^ {j[1]}'])
-                    except OverflowError:
-                        print("too big lol")
 
-            if j[0] != 0 and i[0] != 0:
-                if i[0] * j[0] != i[0] and i[0] * j[0] != j[0]:
-                    al.append([i[0] * j[0], f'{i[1]} * {j[1]}'])
-                
-                if j[0] != i[0]:
-                    if j[0] != 0:
-                        if i[0] / j[0] != i[0] and i[0] / j[0] != j[0]:
-                            al.append([i[0] / j[0], f'{i[1]} / {j[1]}'])
-                            
-                    if i[0] + j[0] != i[0] and i[0] + j[0] != j[0]:
-                        al.append([i[0] + j[0], f'{i[1]} + {j[1]}'])
-
-                    if i[0] - j[0] != i[0] and i[0] - j[0] != j[0]:
-                        al.append([i[0] - j[0], f'{i[1]} - {j[1]}'])
-    l.extend(al)
-    return l
-
-def diversify(d: list[float]) -> list[list[float, str]]: 
-    '''
-    d: list of numbers to start out with.
-
-    Returns a list of lists of c with unary operations applied.
-
-    Sublist format: [constant, 'expression to find constant']
-    ex: [sin(c), 'sin({c})']
-    '''
-    al = []
-    match d:
-
-        # c for constant and constant is for me
-
-        case "pi": 
-            c = math.pi
-        case "e":
-            c = math.e
-        case "phi":
-            c = phi
-        case "sqrt(2)":
-            c = sqrttwo
-        case "sqrt(3)":
-            c = sqrtthree
-        case "(1/2)":
-            c = 1/2
-        case "(1/3)":
-            c = 1/3
-        case "(1/4)":
-            c = 1/4
-        case "(1/5)":
-            c = 1/5
-        case "(1/6)":
-            c = 1/6
-        case _:
-            # default case
-            c = d
-
-    al.append([c, f'{d}'])
-    al.append([math.sin(c), f'sin({d})']) # add options for radians
-    al.append([math.cos(c), f'cos({d})'])
-    al.append([math.tan(c), f'tan({d})'])
-
-    if c <= 1 and c >= -1:
-        al.append([math.asin(c), f'arcsin({d})'])
-        al.append([math.acos(c), f'arccos({d})'])
-
-    al.append([math.atan(c), f'tan({d})'])
-    
-    '''if isinstance(c, int) and c > 0:
-        al.append([math.factorial(c), f'{d}!'])'''
-    
-    if c > 0:
-        al.append([math.log(c, math.e), f'ln({d})'])
-
-    return al
+if __name__ == "__main__":
+    print(generate_table())

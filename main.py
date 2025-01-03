@@ -6,12 +6,17 @@ from datetime import timedelta
 TODO
 
 
+Accept latex as user expression input
+
+better docs in sqlalchemy class defs
 
 
 database content stuff
     expand DB to third level ops
     expand DB with regular integers up to 2048? 10^6?
 
+
+    4cos()
 
     BELOW is because of floating point arithmatic, switch to Decimal library for more accurate
     related to: calculations should be more accurate; e.g. sin(pi)^sqrt(2) != 0 rn
@@ -37,7 +42,7 @@ different search methods
 
 Highlight specific types of number
     - popular constants
-        - e, pi, phi, whatever
+        - e, pi, phi, euler's whatever
     - primes
 
 

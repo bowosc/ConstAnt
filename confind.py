@@ -228,7 +228,7 @@ def add_user_const(userid:int, constname:str, expression:str, isLatex: bool = Fa
     if n:
         return "A constant with this name already exists!"
     elif l:
-        return "A constant with this expression already exists!"
+        return "This constant has already been defined!"
     
     #value = expressions.solve(expression, isLatex)
     value = Expr.evalf(sympify(expression))
@@ -263,7 +263,7 @@ def add_user_const(userid:int, constname:str, expression:str, isLatex: bool = Fa
 
 def inittable():
     '''
-    Generate values for the table, prints 'em all out. 
+    Generate values for the table, writes em' to the DB, prints 'em all out. 
     DOES NOT CHECK IF TABLE IS FULL ALREADY! Don't run this function if your table is already populated.
     No args needed B)
 
@@ -295,7 +295,7 @@ def inittable():
             except:
                 # wheee its a string
                 b = solves(active._id, active.ref)
-                print("we cook")
+                #print("we cook")
             else:
                 # its a float so we just ignore it
                 pass
@@ -316,7 +316,7 @@ def inittable():
             # the generating function actually just makes const objects so we have to go back and delete them later, so we label them here
             i.ref = "KILLME"
             graveyard.append(i._id)
-            print("we work ")
+            #print("we work ")
 
         db.session.add(b)
     db.session.commit()
