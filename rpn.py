@@ -1,5 +1,9 @@
 import math
 
+# CURRENTLY UNUSED
+# sympy is way nicer sorry
+
+
 #TODO
 # probably let it handle X as a multiplication operator in addition to *.
 # Imaginary number handling

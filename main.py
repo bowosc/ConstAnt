@@ -1,39 +1,27 @@
 from flask import Flask
 from flask import render_template, redirect, request, url_for, flash, session
-import confind
+import confind, input # just singular py files not whole libraries
 from datetime import timedelta
 '''
 TODO
+MVP
+UI/UX
 
 
-Accept latex as user expression input
-
-better docs in sqlalchemy class defs
-
+NONMVP
+random placeholder text in search bar
 
 database content stuff
+
     expand DB to third level ops
     expand DB with regular integers up to 2048? 10^6?
 
 
     4cos()
 
-    BELOW is because of floating point arithmatic, switch to Decimal library for more accurate
-    related to: calculations should be more accurate; e.g. sin(pi)^sqrt(2) != 0 rn
 
-    
+Accept latex as user expression input
 
-idiotproofing
-    error msgs and whatever
-    prevent ppl from submitting expressions like 2+0+0+0+0 or 2+sin(pi)+sin(pi)+sin(pi)
-    
-
-UI/UX
-
-random placeholder text in search bar
-
-
-later:
 different search methods
     - consider decimal?
     - only integers?
@@ -45,12 +33,10 @@ Highlight specific types of number
         - e, pi, phi, euler's whatever
     - primes
 
-
-    
-
-encrypt passwords
+Add option to add const definition on viewconst page
 
 
+LARGE SUBPROJECTS
 
 number line viewer
 social medialization
@@ -122,13 +108,18 @@ def register():
         if request.form['passworb'] != request.form['password']:
             flash('Passwords do not match!', 'usererror')
             return redirect(url_for('register'))
-        idk = confind.new_user(request.form['username'], request.form['password'], request.form['email'])
-        if isinstance(idk, str):
-            flash(idk, 'usererror')
-            return redirect(url_for('register'))
+        
+        error = input.problemsWithNewUser(request.form['username'], request.form['email'], request.form['password'])
+        if error:
+            flash(error, 'usererror')
+            return redirect(url_for("home"))
         else:
-            flash(f'Account successfully created, {idk.name}! Welcome!')
+            idk = confind.new_user(request.form['username'], request.form['password'], request.form['email'])
+
+            flash(f'Account successfully created. Welcome, {idk.name}!', 'success')
+            login_user(idk.name, request.form['password']) # doesn't use the password in the db, because it's hashed.
             return redirect(url_for('home'))
+    
     return render_template('register.html')
 
 @app.route("/login", methods=['POST', 'GET'])
@@ -143,37 +134,23 @@ def newconst():
     if 'user' not in session:
         flash('Please log in to submit a constant!', 'usererror')
         return redirect(request.referrer)
-        
+    elif request.method == 'POST':
+        userid, cname, eq, notes = session["user"], request.form["constantname"], request.form["equation"], request.form["notes"]
 
-    if request.method == 'POST':
-        if 'user' not in session: # the double check
-            flash('Please log in to submit a constant!', 'usererror')
-            return redirect(request.referrer)
-        eq, usr, notes, cname = request.form['equation'], session["user"], request.form['notes'], request.form['constantname']
-        if eq and usr and notes and cname:
-                if isinstance(cname, str):
-                    b = confind.add_user_const(usr, cname, eq, notes)
-                    try:
-                        a = int(b)
-                    except TypeError:
-                        flash(b, 'error')
-                        return redirect(url_for("newconst"))
-                    except ValueError:
-                        flash(b, 'usererror')
-                        return redirect(url_for("newconst"))
+        error = input.problemsWithNewConst(userid, cname, eq, False, notes)
 
-                    if isinstance(b, str):
-                        flash(b, 'usererror')
-                        return redirect(url_for("newconst"))
-                    else:
-                        flash('Constant successfully added!', 'success')
-                        return redirect(url_for("home")) # should be changed to constant viewing page when that works
-                else:
-                    flash('Constant name must contain letter characters!', 'usererror')
-                    return redirect(url_for("newconst"))
-        else:
-            flash('Please fill in all fields to submit this form.', 'usererror')
+        if error:
+            flash(error, 'usererror')
             return redirect(url_for("newconst"))
+        else:
+            try:
+                newconstid = confind.add_user_const(userid, cname, eq, notes)
+            except:
+                flash('Database error. Contact an Administrator!', 'error')
+                return redirect(url_for("home"))
+            flash('Constant successfully added!', 'success')
+            return redirect(f"viewconst/{newconstid}") 
+
     return render_template('newconst.html')
 
 @app.route("/viewconst/<int:id>", methods=['POST', 'GET'])

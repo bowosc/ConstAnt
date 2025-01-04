@@ -1,10 +1,10 @@
-from flask_sqlalchemy import SQLAlchemy
 import re
 from datetime import datetime
-from sqlalchemy import func, DateTime, delete
-from rpn import rpn
-import carpentry
 from sympy import Expr, evalf, sympify
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import func, DateTime, delete
+
+import carpentry, hashing # just singular py files not entire libraries
 
 PREGEN_CONST_CREATOR = "Server"
 PREGEN_CONST_NAME = "Automatically generated constant"
@@ -13,6 +13,9 @@ PREGEN_CONST_NOTES = ""
 db = SQLAlchemy()
 
 class consts(db.Model):
+    '''
+    Database format for constants.
+    '''
     _id = db.Column(db.Integer, primary_key=True)
     num = db.Column(db.Float)
     shortnum = db.Column(db.String) # for display purposes only :)
@@ -34,6 +37,9 @@ class consts(db.Model):
         # no datetime definition needed 
 
 class solves(db.Model):
+    '''
+    Database format for expressions that evaluate to a constant.
+    '''
     _id = db.Column(db.Integer, primary_key=True)
     fid = db.Column(db.Integer) # id of const its attached to
     sol = db.Column(db.String(255)) # equation
@@ -45,6 +51,9 @@ class solves(db.Model):
         # no datetime def needed B)
 
 class constvotes(db.Model):
+    '''
+    Database format for votes on constants.
+    '''
     _id = db.Column(db.Integer, primary_key=True)
     userid = db.Column('userid', db.Integer, db.ForeignKey('users._id'))
     constid = db.Column('constid', db.Integer, db.ForeignKey('consts._id'))
@@ -58,15 +67,18 @@ class constvotes(db.Model):
         self.super = False # unused rn
 
 class users(db.Model):
+    '''
+    Database format for user accounts.
+    '''
     _id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255))
     pw = db.Column(db.String(255))
     email = db.Column(db.String(255))
     notes = db.Column(db.Text)
-    isadmin = db.Column(db.Boolean())
-    isbanned = db.Column(db.Boolean())
-    isverified = db.Column(db.Boolean())
-    creationdate = db.Column(DateTime, default=datetime.now())
+    isadmin = db.Column(db.Boolean()) # currently unused
+    isbanned = db.Column(db.Boolean()) # currently unused
+    isverified = db.Column(db.Boolean()) # currently unused
+    creationdate = db.Column(DateTime) # currently unused
 
     voted = db.relationship(
         'constvotes',
@@ -76,26 +88,27 @@ class users(db.Model):
         )
 
     # currently only set up for consts, but named more ambiguously so that it could be expanded later
-    def upvote_post(self, const):
+    def upvote_post(self, const: consts) -> None:
         if not self.has_upvoted_post(const):
             upvote = constvotes(userid=self._id, constid=const._id)
             db.session.add(upvote)
 
-    def downvote_post(self, const):
+    def downvote_post(self, const: consts) -> None:
         if self.has_upvoted_post(const):
             constvotes.query.filter_by(userid=self._id, constid=const._id).delete()
 
-    def has_upvoted_post(self, const):
+    def has_upvoted_post(self, const: consts) -> None:
         return constvotes.query.filter(constvotes.userid == self._id, constvotes.constid == const._id).count() > 0
     
     def __init__(self, name, pw, email):
         self.name = name
-        self.pw = pw
+        self.pw = hashing.generateHash(pw)
         self.email = email
         self.notes = "I'm new here!"
         self.isadmin = False
         self.isbanned = False
         self.isverified = False
+        self.creationdate = datetime.now()
 
 
 def shortenNum(num: float) -> str:
@@ -139,41 +152,24 @@ def voteaction(constid: int, action: str, userid: int) -> int:
         db.session.commit()
     return const.votes.count()
 
-def new_user(thename: str, thepw: str, theemail: str) -> users:
+def new_user(thename: str, thepw: str, theemail: str) -> users | str:
     '''
-    NOTE: DOES NOT SANITIZE DATA INPUT!
+    Adds a user to the database.
+    DOES NOT DO ANY KIND OF CHECKS BEFOREHAND, BE SURE TO PREP INPUT!!!
 
-    Adds a user to the database. 
+    thename: the name
+    thepw: the password
+    theemail: the email 
 
-    thename: the name :)
-    thepw: the password :) NOTE: This needs to be encrypted. It currently isn't. It's on my TODO list.
-    theemail: the email :)
-
-    Returns the user object.
+    Returns the user object on success, returns an error message string on fail.
     '''
-
-    if is_email_valid(theemail) != True:
-        return "Invalid email address!"
     
-    if len(thename) > 24:
-        return "Your username cannot be longer than 24 characters."
-
-    if len(thepw) > 24:
-        return "Your password cannot be longer than 24 characters."
-    
-    em = users.query.filter_by(email=theemail).first()
-    if em:
-        return "You already have an account, please sign in!"
-    
-    nm = users.query.filter_by(name=thename).first()
-    if nm:
-        return "This username is taken. Please choose a different one."
-    
-    wowie = users(thename, thepw, theemail)
-    db.session.add(wowie)
+    newguy = users(thename, thepw, theemail)
+    db.session.add(newguy)
     db.session.commit()
-    print("registered user " + wowie.name)
-    return wowie
+    print("registered user " + newguy.name)
+
+    return newguy
 
 def verify_login(thename: str, thepw: str) -> users | str: # this seems too simple 
     '''
@@ -185,81 +181,39 @@ def verify_login(thename: str, thepw: str) -> users | str: # this seems too simp
     Returns either user object or user error string, depending on if user/pass was correct or not.
     '''
     eu = users.query.filter_by(name = thename).first()
-    if eu:
-        if thepw != eu.pw:
-            return 'Incorrect username or password!'
+    if eu and hashing.checkHash(thepw, eu.pw):
         print("logged in user " + eu.name)
         return eu
     else:
         return 'Incorrect username or password!'
 
-def is_email_valid(email: str) -> bool:
+def add_user_const(userid:int, constname:str, expression:str, isLatex: bool = False, notes:str = None) -> int:
     '''
-    Uses a nice little regex pile to quickly check if an email seems email-ish. 
-    This is fine for now, but far from comprehensive. 
-    In a later version I'll use SMTP to verify email with a code instead.
-
-    email: Email to verify.
-    
-    returns True if email seems legit and False if not.
-    '''
-    regex = r'^[a-z0-9]+[\._]?[a-z0-9]+[@]\w+[.]\w+$'
-    if len(email) > 128:
-        return False
-    if re.match(regex, email):
-        return True
-    else:
-        return False
-
-def add_user_const(userid:int, constname:str, expression:str, isLatex: bool = False, notes:str = None) -> float | str:
-    '''
-    Adds a user const to the database. Checks if it already exists, too.
+    Adds a user const to the database.
+    DOES NOT DO ANY KIND OF CHECKS BEFOREHAND, BE SURE TO PREP INPUT!!!
+    Probably use problemsWithNewConst() from input.py to do this. 
 
     userid: id of the user adding the const
     constname: name of the const
     expression: expression that computes the const
     notes: notes for the const
 
-    Note that the returned value will be either a string (error msg) for user error or a float (the const) for a success.
+    Returns the ID of the constant added.
     '''
 
-    n = consts.query.filter_by(name=constname).first() 
-    l = consts.query.filter_by(ref=expression).first()
-    if n:
-        return "A constant with this name already exists!"
-    elif l:
-        return "This constant has already been defined!"
-    
     #value = expressions.solve(expression, isLatex)
     value = Expr.evalf(sympify(expression))
-    if isinstance(value, str): # if rpn returned a string, aka if its an error msg
-        print("RPN error!")
-        return value
-    else:
-        m = consts.query.filter_by(num=value).first()
-        
-        if m:
-            if not solves.query.filter_by(sol=expression).first():
-                newsol = solves(m._id, expression)
-                db.session.add(newsol)
-                bestoption = solves.query.filter_by(sol=expression).order_by(func.length(solves.sol)).first() # shortest expression to find the constant
-                m.ref = bestoption.sol
-                db.session.commit()
-            return "This constant has already been defined, but we added your definition to the list!"
-        
-        else:
-            theuser = users.query.filter_by(_id = userid).first()
-            b = consts(value, expression, constname, theuser.name, notes)
-            db.session.add(b)
-            bingus = consts.query.filter_by(num = value).first()
-            s = solves(bingus._id, bingus.ref)
-            db.session.add(s)
 
-            db.session.commit()
-            print(f"{s.fid} {s.sol}")
-            print(f"Added constant {b.name}: {b.ref} = {b.num}. Added by user {b.creator}. Notes: {b.notes}")
-    print("we got there appt")
-    return b.num
+    theuser = users.query.filter_by(_id = userid).first()
+    b = consts(value, expression, constname, theuser.name, notes)
+    db.session.add(b)
+    bingus = consts.query.filter_by(num = value).first()
+    s = solves(bingus._id, bingus.ref)
+    db.session.add(s)
+
+    db.session.commit()
+    print(f"Added constant {b.name}: {b.ref} = {b.num}. Added by user {b.creator}. Notes: {b.notes}")
+    return b._id
 
 def inittable():
     '''
@@ -345,6 +299,7 @@ def solfind(whatid:int) -> list[solves]:
 
     whatid: Id of const in question
     
+    Note: this is kinda just a one-line SQLAlchemy query shoved into a function.
     '''
     results = solves.query.filter_by(fid = whatid).order_by(func.length(solves.sol)).all()
     return results
@@ -402,8 +357,8 @@ def find_user(userid: int) -> users:
 def init_default_user():
     '''
     Adds "default" user, for testing.
-    Username: "user"
-    Password: "pass"
+    Username: "bob"
+    Password: "bob"
     Email: "bowman@edebohls.com"
     
     Also adds Null user.
@@ -411,7 +366,7 @@ def init_default_user():
     Password: "Password not found. Or user."
     Email: "Email not found. Or user."
     '''
-    usr = users('user', 'pass', 'bowman@edebohls.com')
+    usr = users('bob', 'bob', 'bowman@edebohls.com')
     nullusr = users("User not found.", "Password not found. Or user.", "Email not found. Or user.")
 
     db.session.add(nullusr)
