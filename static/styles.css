@@ -171,7 +171,8 @@ a {
     
     
     margin: auto;
-    width: 40%;
+    min-width: 600px;
+    max-width: 60%;
     
     background: rgba( 43, 146, 239, 0.25 );
     box-shadow: 0 8px 32px 0 rgba( 31, 38, 135, 0.37 );

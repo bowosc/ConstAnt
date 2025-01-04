@@ -1,4 +1,3 @@
-# processing user input so we don't get 327'd or n-worded. Thankfully, SQLAlchemy isn't very vulnerable to SQL injection unless you're doing the manual SQL stuff, which we're not.
 import confind 
 from sympy import Expr, sympify
 import re

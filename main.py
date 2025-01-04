@@ -1,22 +1,21 @@
 from flask import Flask
 from flask import render_template, redirect, request, url_for, flash, session
-import confind, input # just singular py files not whole libraries
 from datetime import timedelta
+
+import confind, input 
+
 '''
 TODO
 MVP
 UI/UX
 
-
 NONMVP
-random placeholder text in search bar
 
 database content stuff
 
     expand DB to third level ops
     expand DB with regular integers up to 2048? 10^6?
-
-
+    expand DB with more wacky numbers (from a dataset somewhere?)
     4cos()
 
 
@@ -33,7 +32,7 @@ Highlight specific types of number
         - e, pi, phi, euler's whatever
     - primes
 
-Add option to add const definition on viewconst page
+Add option to include new const definition on viewconst page
 
 
 LARGE SUBPROJECTS
@@ -43,6 +42,7 @@ social medialization
     order numbers by likes
     comments
     account viewing page
+
 '''
 
 app = Flask(__name__)
@@ -80,6 +80,11 @@ def logout():
     else:
         flash("You aren't logged in!", "usererror")
     return redirect(request.referrer)
+
+@app.route("/about")
+def about():
+    return render_template('about.html')
+
 
 @app.route("/", methods=['POST', 'GET'])
 def home():
@@ -133,7 +138,7 @@ def login():
 def newconst():
     if 'user' not in session:
         flash('Please log in to submit a constant!', 'usererror')
-        return redirect(request.referrer)
+        return redirect(url_for('login'))
     elif request.method == 'POST':
         userid, cname, eq, notes = session["user"], request.form["constantname"], request.form["equation"], request.form["notes"]
 

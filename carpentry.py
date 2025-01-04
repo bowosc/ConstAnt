@@ -1,5 +1,7 @@
 from sympy import Expr, sympify
 
+import confind as cf
+
 # expression data format primer:
 # [value: float, expression: str]
 
@@ -32,8 +34,12 @@ def applyUnaryOps(sub: str) -> list[float, str]:
     for i in UNARYOPS:
         if i == '':
             expression = f'{sub}'
+        elif str(sub)[0] == "(" and str(sub)[-1] == ")": 
+            # if the subexpression already has parens, we don't need to add more
+            expression = f'{i}{sub}'
         else:
             expression = f'{i}({sub})'
+
         if Expr.evalf(sympify(expression)) > 0:
             result.append(formatForTable(expression))
 
@@ -70,7 +76,7 @@ def applyBinaryOps(asub: list[float, str], bsub: list[float, str], isSecondLayer
 
     return result
 
-def generate_table() -> list[list[float, str]]:
+def generateTable() -> list[list[float, str]]:
     '''
     generate a mf table
     '''
@@ -96,9 +102,13 @@ def generate_table() -> list[list[float, str]]:
     return strtable
 
 
+def generateFancyNumbers() -> list[list[float, str]]:
 
+    PERFECT_NUMBERS = []
+    MERSENNE_PRIMES = []
+    return
 
 
 
 if __name__ == "__main__":
-    print(generate_table())
+    print(generateTable())

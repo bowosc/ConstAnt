@@ -1,10 +1,9 @@
-import re
 from datetime import datetime
 from sympy import Expr, evalf, sympify
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func, DateTime, delete
 
-import carpentry, hashing # just singular py files not entire libraries
+import carpentry, hashing 
 
 PREGEN_CONST_CREATOR = "Server"
 PREGEN_CONST_NAME = "Automatically generated constant"
@@ -23,7 +22,7 @@ class consts(db.Model):
     name = db.Column(db.String(255))
     creator = db.Column(db.Integer)
     notes = db.Column(db.Text)
-    date = db.Column(DateTime, default=datetime.now())
+    date = db.Column(DateTime)
 
     votes = db.relationship('constvotes', backref='post', lazy='dynamic')
     
@@ -34,7 +33,19 @@ class consts(db.Model):
         self.name = name
         self.creator = creator
         self.notes = notes
-        # no datetime definition needed 
+        self.date = datetime.now()
+
+class trait(db.Model):
+    '''
+    Database format for traits that apply to a constant. 
+    '''
+    _id = db.Column(db.Integer, primary_key=True)
+    fid = db.Column(db.Integer) # id of const its attached to
+    traitname = db.Column(db.String(255)) # the actual trait, e.g. Prime, Natural, Irrational, ect.
+
+    def __init__(self, fid, traitname):
+        self.fid = fid
+        self.traitname = traitname
 
 class solves(db.Model):
     '''
@@ -48,7 +59,6 @@ class solves(db.Model):
     def __init__(self, fid, sol):
         self.fid = fid
         self.sol = sol
-        # no datetime def needed B)
 
 class constvotes(db.Model):
     '''
@@ -109,6 +119,9 @@ class users(db.Model):
         self.isbanned = False
         self.isverified = False
         self.creationdate = datetime.now()
+
+
+
 
 
 def shortenNum(num: float) -> str:
@@ -224,28 +237,27 @@ def inittable():
     NOTE: currently full of print() functions for debugging purposes. 
     I kept removing them and adding them back in and figured it's just easier to keep them in here.
     '''
-    newtable = True
-    if newtable:
-        vals = carpentry.generate_table()
-        for i in vals:
-            b = consts(num=i[0], ref=i[1], name=PREGEN_CONST_NAME, creator=PREGEN_CONST_CREATOR, notes=PREGEN_CONST_NOTES) 
-            db.session.add(b)
-            print(f'{i[1]} = {i[0]}')
-        db.session.commit()
+    
+    vals = carpentry.generateTable()
+
+    for i in vals:
+        b = consts(num=i[0], ref=i[1], name=PREGEN_CONST_NAME, creator=PREGEN_CONST_CREATOR, notes=PREGEN_CONST_NOTES) 
+        db.session.add(b)
+        print(f'{i[1]} = {i[0]}')
+
+    db.session.commit()
 
     active = consts.query.order_by(consts.num.asc()).first()
     tb = consts.query.order_by(consts.num).all()
-    graveyard = [] # where constants go to die
-    deletethiscounter = []
 
     for i in tb:
         if i.num != active.num:
             # this constant doesn't exist yet, so we're gonna set it up
 
-            active = i # why?
+            active = i 
 
             try: 
-                k = float(active.ref) # is active.ref a float
+                float(active.ref) # is active.ref a float
             except:
                 # wheee its a string
                 b = solves(active._id, active.ref)
@@ -258,27 +270,17 @@ def inittable():
             # this constant already exists, so we're just gonna add this solution as a solves to the existing constant
             
             try: 
-                k = float(active.ref) # is active.ref a float
+                float(active.ref) # is active.ref a float
             except:
                 # wheee its a string
                 b = solves(active._id, i.ref)
-            else:
-                # its a float so we just ignore it
-                deletethiscounter.append(active.ref)
-
 
             # the generating function actually just makes const objects so we have to go back and delete them later, so we label them here
             i.ref = "KILLME"
-            graveyard.append(i._id)
-            #print("we work ")
 
         db.session.add(b)
     db.session.commit()
     consts.query.filter_by(ref = "KILLME").delete()
-
-
-    print("we COOK")
-    print(deletethiscounter)
     db.session.commit()
         
     return

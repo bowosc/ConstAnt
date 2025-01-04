@@ -1,4 +1,7 @@
 import bcrypt
+
+# After making this, then shortening it signifigantly, I realize it probably doesn't need to be its own file.
+
 def generateHash(target: str) -> str:
     '''
     Uses bcrypt to generate a hash for a given string, later verifiable by bcrypt.

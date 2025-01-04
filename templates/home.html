@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% block body %}
+
 <body>
     <br>
     <div class="centered">
@@ -47,6 +48,36 @@
             {% endif %}
         </div>
     </div>
+    <script>
+        // currently unused :(
+        /*
+        let placeholderOptions = [
+            'Favorite number?', 
+            'Prime fan?', 
+            'Irrational curiosity?', 
+            'Thinking about e?',
+            'Thinking about pi?',
+            'Thinking about phi?',
+            'Find something cool?',
+            'Stumped?',
+            'Bored?',
+            'Find Taxicab Numbers!',
+            'Find Unnatural Numbers!',
+            'Rational search?',
+        ];
+        
+        function randomIntFromInterval(min, max) { // min and max included 
+            return Math.floor(Math.random() * (max - min + 1) + min);
+        }
+
+        
+        let rndom = randomIntFromInterval(0, placeholderOptions.length - 1);
+        console.log(rndom);
+
+        placehold = placeholderOptions[rndom];
+        document.getElementsByName('searchbar')[0].placeholder=placehold;
+        */
+    </script>
 </body>
 
 {% endblock %}
