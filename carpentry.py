@@ -1,25 +1,30 @@
 from sympy import Expr, sympify
 
-import confind as cf
+from confind import users, solves, consts, constvotes, traits, db
 
 # expression data format primer:
 # [value: float, expression: str]
 
-def formatForTable(expression: str) -> list[float, str]:
+PREGEN_CONST_CREATOR = "Server"
+PREGEN_CONST_NAME = "Automatically generated constant"
+PREGEN_CONST_NOTES = ""
+
+
+def formatForTable(expression: str) -> tuple[float,str]:
     '''
     Formats a string expression into a usable form for the table.
     Format: [value: float, expression: str]
     '''
     return [Expr.evalf(sympify(expression)), expression]
 
-def prepExpressionString(expression:list[float, str]) -> None:
+def prepExpressionString(expression:tuple[float,str]) -> None:
     '''
     Preps the string part of the expression data thing IN PLACE into a more user-friendly version.
     '''
     expression[1] = expression[1].replace('E', 'e')
     return
 
-def applyUnaryOps(sub: str) -> list[float, str]:
+def applyUnaryOps(sub: str) -> tuple[float,str]:
     '''
     Diversifies a single value into a list of expressions by applying different unary operations.
 
@@ -29,7 +34,7 @@ def applyUnaryOps(sub: str) -> list[float, str]:
     '''
     result = []
 
-    UNARYOPS = ['sin', 'cos', 'ln', '']
+    UNARYOPS = ['sin', 'cos', 'ln']
 
     for i in UNARYOPS:
         if i == '':
@@ -47,7 +52,7 @@ def applyUnaryOps(sub: str) -> list[float, str]:
 
     return result
 
-def applyBinaryOps(asub: list[float, str], bsub: list[float, str], isSecondLayer: bool = False) -> list[float, str]:
+def applyBinaryOps(asub: tuple[float,str], bsub: tuple[float,str], isSecondLayer: bool = False) -> tuple[float,str]:
     '''
     Funnels two subexpressions into a third by applying binary operations.
 
@@ -76,12 +81,16 @@ def applyBinaryOps(asub: list[float, str], bsub: list[float, str], isSecondLayer
 
     return result
 
-def generateTable() -> list[list[float, str]]:
+def generateBoringTable() -> list[tuple[float, str]]:
     '''
-    generate a mf table
+    Generate a bunch of "boring" numbers through a method of applying different operations to a list of constants.
+
+    Generates a list of [float, str] tuples containing a number and the expression that results in that number.
+    The float part is the number itself, the str is the expression.
+
+    Returns the list.
     '''
     strtable = []
-    table = []
 
     CONSTANTS = ["pi", "E", "(1/2)", "(1/3)", "(1/4)", "(1/5)", "(1/6)", 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] 
 
@@ -99,16 +108,97 @@ def generateTable() -> list[list[float, str]]:
     for i in strtable:
         i=prepExpressionString(i)
 
+
+    for i in range(0, 2048):
+        strtable.append([i, f'{i}'])
+        
+
     return strtable
 
+def generateCoolTable() -> list[tuple[consts, list[str]]]:
+    '''
+    Returns a bunch of "interesting" numbers, in the format:
 
-def generateFancyNumbers() -> list[list[float, str]]:
-
+    [ 
+        [const1, [tag1, tag2, tag3]],
+        [const2, [tag1, tag2, tag3]],
+        [const3, [tag1, tag2, tag3]]
+    ]
+    '''
+    # DO NOT PERFORM ANY OPERATIONS ON THESE! IT WILL END UP RESULTING IN DUPLICATES!
     PERFECT_NUMBERS = []
     MERSENNE_PRIMES = []
+    bob = consts("121212121212", "121212121211+1", "bowie's number", "bowie", "my special friend")
+
+    return [[bob, ['Fun fact: NOT a prime number!']]]
+
+def applyTable():
+    '''
+    Generate values for the table, writes em' to the DB, prints 'em all out. 
+    DOES NOT CHECK IF TABLE IS FULL ALREADY! Don't run this function if your table is already populated.
+    No args needed B)
+    '''
+
+    boringvals = generateBoringTable()
+
+
+    for i in boringvals:
+        b = consts(num=i[0], ref=i[1], name=PREGEN_CONST_NAME, creator=PREGEN_CONST_CREATOR, notes=PREGEN_CONST_NOTES) 
+        db.session.add(b)
+        print(f'{i[1]} = {i[0]}')
+
+    db.session.commit()
+
+    ########################################################################
+    # Condense the database, removing identical numbers and appending      #
+    # them to each other until we end up with just one object per constant.#
+    ########################################################################
+
+    previous = consts.query.order_by(consts.num.asc()).first()
+    numberpile = consts.query.order_by(consts.num).all()
+
+    for inst in numberpile:
+        # numberpile is an ordered list, making this smoother
+
+        if inst.num == previous.num:
+            db.session.add(solves(previous._id, inst.ref))
+            db.session.delete(inst)
+        else:
+            db.session.add(solves(inst._id, inst.ref))
+            previous = inst
+
+
+
+    # add in the consts, add in the traits
+    # attach the traits to the constants
+    # if there's two identical ones, append traits to existing constant
+    constsandtags = generateCoolTable()
+
+    for inst, tags in constsandtags:
+        existingcopy = consts.query.filter_by(num = inst.num).first()
+        if existingcopy:
+            db.session.add(solves(existingcopy._id, inst.ref))
+
+            for tag in tags:
+                db.session.add(traits(existingcopy._id, tag))
+
+        else:
+            db.session.add(inst)
+            db.session.add(solves(inst._id, inst.ref))
+            db.session.commit()
+
+            for tag in tags:
+                bob = traits(inst._id, tag)
+                db.session.add(bob)
+
+
+    db.session.commit()
+    
+    ########################################################################
     return
 
 
 
+
 if __name__ == "__main__":
-    print(generateTable())
+    print("Try running main.py!")

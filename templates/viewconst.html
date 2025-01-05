@@ -11,9 +11,18 @@
         <br>
         <h2>{{ result.num }}</h2>
         <br>
-        <h2>Notes:</h2>
-        <h3>{{ result.notes }}</h3>
-        <br>
+        {% if traits %}
+            {% for trait in traits%}
+                {{trait.traitname}}
+                <br>
+            {% endfor %}
+        
+        {% endif %}
+        {% if result.notes %}
+            <h2>Notes:</h2>
+            <h3>{{result.notes}}</h3>
+            <br>
+        {% endif %}
         <h2>Some ways to find it:</h2>
         {% for sol in soldata %}
             <p>{{ sol.sol }}</p>

@@ -2,7 +2,7 @@ from flask import Flask
 from flask import render_template, redirect, request, url_for, flash, session
 from datetime import timedelta
 
-import confind, input 
+import confind, input, carpentry
 
 '''
 TODO
@@ -89,6 +89,7 @@ def about():
 @app.route("/", methods=['POST', 'GET'])
 def home():
     query = None
+    traits = None
     if request.method == 'POST':
         if request.form['searchbar'] != None:
 
@@ -97,7 +98,7 @@ def home():
             if isinstance(results, str): # if confind finds no results
                 #flash(results, 'searcherror')
                 results = None
-                redirect(url_for("home"))
+                return redirect(url_for("home"))
 
             query = request.form['searchbar']
 
@@ -165,12 +166,20 @@ def viewconst(id: int):
 
     id: Id of the constant.
     '''
+
     result = confind.confind(whatid=id)
     if not result:
         flash('No constant with that ID exists!', 'usererror')
         return redirect(request.referrer)
+    
     soldata = confind.solfind(id)
-    return render_template('viewconst.html', result = result, soldata = soldata)
+    traits = confind.traitfind(id)
+    if not traits:
+        print("notrait")
+    for trait in traits:
+        print(trait.traitname)
+
+    return render_template('viewconst.html', result = result, soldata = soldata, traits = traits)
 
 @app.route("/constvote/<int:constid>/<action>", methods=['POST', 'GET'])
 def constvote(constid: int, action: str = 'toggle'):
@@ -212,7 +221,7 @@ if __name__ == "__main__":
         confind.db.init_app(app)
         confind.db.create_all() # set up the stuff
         if not confind.does_table_exists(): # does the data inside the table exist? if not, make it
-            confind.inittable()
+            carpentry.applyTable()
 
         confind.init_default_user() # for dev purposes, not to be used in production
         confind.db.session.commit # lock in

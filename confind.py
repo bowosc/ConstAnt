@@ -3,11 +3,7 @@ from sympy import Expr, evalf, sympify
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func, DateTime, delete
 
-import carpentry, hashing 
-
-PREGEN_CONST_CREATOR = "Server"
-PREGEN_CONST_NAME = "Automatically generated constant"
-PREGEN_CONST_NOTES = ""
+import hashing 
 
 db = SQLAlchemy()
 
@@ -35,7 +31,7 @@ class consts(db.Model):
         self.notes = notes
         self.date = datetime.now()
 
-class trait(db.Model):
+class traits(db.Model):
     '''
     Database format for traits that apply to a constant. 
     '''
@@ -228,83 +224,18 @@ def add_user_const(userid:int, constname:str, expression:str, isLatex: bool = Fa
     print(f"Added constant {b.name}: {b.ref} = {b.num}. Added by user {b.creator}. Notes: {b.notes}")
     return b._id
 
-def inittable():
+def find_user(userid: int) -> users:
     '''
-    Generate values for the table, writes em' to the DB, prints 'em all out. 
-    DOES NOT CHECK IF TABLE IS FULL ALREADY! Don't run this function if your table is already populated.
-    No args needed B)
+    Three guesses what this does.
 
-    NOTE: currently full of print() functions for debugging purposes. 
-    I kept removing them and adding them back in and figured it's just easier to keep them in here.
+    userid: Id of user.
+
+    Returns the user object of the user found, or None if no user found.
     '''
-    
-    vals = carpentry.generateTable()
-
-    for i in vals:
-        b = consts(num=i[0], ref=i[1], name=PREGEN_CONST_NAME, creator=PREGEN_CONST_CREATOR, notes=PREGEN_CONST_NOTES) 
-        db.session.add(b)
-        print(f'{i[1]} = {i[0]}')
-
-    db.session.commit()
-
-    active = consts.query.order_by(consts.num.asc()).first()
-    tb = consts.query.order_by(consts.num).all()
-
-    for i in tb:
-        if i.num != active.num:
-            # this constant doesn't exist yet, so we're gonna set it up
-
-            active = i 
-
-            try: 
-                float(active.ref) # is active.ref a float
-            except:
-                # wheee its a string
-                b = solves(active._id, active.ref)
-                #print("we cook")
-            else:
-                # its a float so we just ignore it
-                pass
-
-        else:
-            # this constant already exists, so we're just gonna add this solution as a solves to the existing constant
-            
-            try: 
-                float(active.ref) # is active.ref a float
-            except:
-                # wheee its a string
-                b = solves(active._id, i.ref)
-
-            # the generating function actually just makes const objects so we have to go back and delete them later, so we label them here
-            i.ref = "KILLME"
-
-        db.session.add(b)
-    db.session.commit()
-    consts.query.filter_by(ref = "KILLME").delete()
-    db.session.commit()
-        
-    return
-
-def does_table_exists():
-    '''
-    Returns True if consts table exists.
-    Returns false if consts table doesn't exist or is empty.
-    '''
-    if consts.query.order_by(consts.ref).limit(25).count() > 20: # check if there's anything in the db
-        return True
-    else:
-        return False
-
-def solfind(whatid:int) -> list[solves]:
-    '''
-    Returns a list of expressions that result in the value of the const.
-
-    whatid: Id of const in question
-    
-    Note: this is kinda just a one-line SQLAlchemy query shoved into a function.
-    '''
-    results = solves.query.filter_by(fid = whatid).order_by(func.length(solves.sol)).all()
-    return results
+    user = users.query.filter_by(_id = userid).first()
+    if user == None:
+        return None
+    return user
 
 # the big one
 def confind(whatnum:float = False, whatref:str = False, whatname:str = False, whatcreator:str = False, whatid:int = False) -> list[consts]:
@@ -343,18 +274,41 @@ def confind(whatnum:float = False, whatref:str = False, whatname:str = False, wh
     
     return results
 
-def find_user(userid: int) -> users:
+def solfind(whatid:int) -> list[solves]:
     '''
-    Three guesses what this does.
+    Returns a list of expressions that result in the value of the const.
 
-    userid: Id of user.
-
-    Returns the user object of the user found, or None if no user found.
+    whatid: Id of const in question
+    
+    Note: this is kinda just a one-line SQLAlchemy query shoved into a function.
+    There used to be a reason for it to be in this file.
     '''
-    user = users.query.filter_by(_id = userid).first()
-    if user == None:
-        return None
-    return user
+    results = solves.query.filter_by(fid = whatid).order_by(func.length(solves.sol)).all()
+    return results
+
+def traitfind(whatid: int) -> list[traits]:
+    '''
+    Returns a list of traits attached to a constant.
+
+    whatid: Id of const in question
+    
+    Note: this is kinda just a one-line SQLAlchemy query shoved into a function.
+    There used to be a reason for it to be in this file.
+    '''
+        
+    traitlist = traits.query.filter_by(fid=whatid).all()
+    return traitlist
+
+
+def does_table_exists():
+    '''
+    Returns True if consts table exists.
+    Returns false if consts table doesn't exist or is empty.
+    '''
+    if consts.query.order_by(consts.ref).limit(25).count() > 20: # check if there's anything in the db
+        return True
+    else:
+        return False
 
 def init_default_user():
     '''

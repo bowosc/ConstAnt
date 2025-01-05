@@ -36,9 +36,11 @@
                         <div class="right">
                             <span class="constname">{{result.name}}</span>
                             <br>
-                            by {{result.creator}}
-                            <br>
-                            Ex: {{result.ref}}
+                            by {{result.creator}} | Ex: {{result.ref}}
+                            <br> 
+                            {% for trait in traits %}
+                             | {{ trait.traitname }}
+                            {% endfor %}
                         </div>
                     </div>
                 </a>

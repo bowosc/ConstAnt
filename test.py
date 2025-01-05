@@ -1,3 +1,8 @@
-bob = "(1/2)"
-print(bob[0])
-print(bob[-1])
+bngus = "hi"
+frick = "bob"
+tupes = [[bngus, frick]]
+
+
+for one, two in tupes:
+    print(one)
+    print(two)
