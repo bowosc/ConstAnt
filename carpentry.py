@@ -17,7 +17,7 @@ def formatForTable(expression: str) -> tuple[float,str]:
     '''
     return [Expr.evalf(sympify(expression)), expression]
 
-def prepExpressionString(expression:tuple[float,str]) -> None:
+def prepExpressionString(expression: tuple[float,str]) -> None:
     '''
     Preps the string part of the expression data thing IN PLACE into a more user-friendly version.
     '''
@@ -109,7 +109,7 @@ def generateBoringTable() -> list[tuple[float, str]]:
         i=prepExpressionString(i)
 
 
-    for i in range(0, 2048):
+    for i in range(0, 2049):
         strtable.append([i, f'{i}'])
         
 
@@ -128,9 +128,20 @@ def generateCoolTable() -> list[tuple[consts, list[str]]]:
     # DO NOT PERFORM ANY OPERATIONS ON THESE! IT WILL END UP RESULTING IN DUPLICATES!
     PERFECT_NUMBERS = []
     MERSENNE_PRIMES = []
-    bob = consts("121212121212", "121212121211+1", "bowie's number", "bowie", "my special friend")
 
-    return [[bob, ['Fun fact: NOT a prime number!']]]
+    cools = []
+    cools.append([consts(Expr.evalf(sympify("121212121211+1")), "121212121211+1", "Bowie's number", "Bowie", "my special friend"), ["The REAL bowie's number!"]])
+    cools.append([consts(Expr.evalf(sympify("(1+sqrt(5))/2")), "(1+sqrt(5))/2", "The Golden Ratio", "Bowie"), ["AKA Phi"]])
+
+
+    for cool in cools:
+        if not cool[0].num:
+            cool[0].num = Expr.evalf(sympify(cool[0].ref))
+        
+    
+
+
+    return cools
 
 def applyTable():
     '''
@@ -171,21 +182,26 @@ def applyTable():
 
     # add in the consts, add in the traits
     # attach the traits to the constants
-    # if there's two identical ones, append traits to existing constant
+    # if a cool-constant already exists, append traits to existing constant rather than new copy.
     constsandtags = generateCoolTable()
 
     for inst, tags in constsandtags:
         existingcopy = consts.query.filter_by(num = inst.num).first()
         if existingcopy:
+            print("dupe " + inst)
             db.session.add(solves(existingcopy._id, inst.ref))
 
             for tag in tags:
+                print(tag)
                 db.session.add(traits(existingcopy._id, tag))
 
         else:
+            
             db.session.add(inst)
-            db.session.add(solves(inst._id, inst.ref))
             db.session.commit()
+            db.session.add(solves(inst._id, inst.ref))
+
+            # _id is only included in a consts instance after it's added to the DB, so we have to commit first.
 
             for tag in tags:
                 bob = traits(inst._id, tag)

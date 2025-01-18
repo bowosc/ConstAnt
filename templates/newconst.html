@@ -3,11 +3,14 @@
 {% block body %}
 <body class="centered">
     <h1> Add your own constant! </h1>
-    <form action="#" method="post">
-        <br><input class="newconstinput" name="constantname" type="text" autocomplete="off" placeholder="Enter the name of your constant.">
-        <br><input class="newconstinput" name="equation" type="text" autocomplete="off" placeholder="Enter an expression that calculates your constant.">
-        <br><input class="newconstinput" name="notes" type="text" autocomplete="off" placeholder="Enter additional notes. Where would this constant be useful?">
-        <br><input class="newconstinput" name="submit" type="submit">
+    <form class="defaultform newconstform" action="#" method="post">
+        <input class="txtform" name="constantname" type="text" autocomplete="off" placeholder="Constant name">
+        <br>
+        <input class="txtform" name="equation" type="text" autocomplete="off" placeholder="Expression to calculate constant. EX: 1+1">
+        <br>
+        <textarea class="txtform" name="notes" autocomplete="off" placeholder="Enter additional notes. What's interesting about this constant? Is it used anywhere? "></textarea>
+        <br>
+        <input class="submitbutton newconstfield" name="submit" type="submit">
     </form>
 </body>
 {% endblock %}

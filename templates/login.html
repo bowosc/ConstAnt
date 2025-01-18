@@ -1,12 +1,19 @@
 {% extends "base.html" %}
 
 {% block body %}
-<body class="centered">
-    <h1> Login </h1>
-    <form action="#" method="post">
-        <br><input class="newconstinput" name="username" type="username" autocomplete="off" placeholder="Username">
-        <br><input class="newconstinput" name="password" type="password" autocomplete="off" placeholder="Password">
-        <br><input class="newconstinput" name="submit" type="submit">
+<body>
+    <div class="centered">
+    <h1> Log into your account </h1>
+
+    <form class="defaultform" action="#" method="post">
+        <input class="txtform" name="username" type="username" autocomplete="off" placeholder="Username">
+        <br>
+        <input class="txtform" name="password" type="password" autocomplete="off" placeholder="Password">
+        <br>
+        <input class="submitbutton" name="submit" type="submit">
     </form>
+    
+    
+    </div>
 </body>
 {% endblock %}

@@ -9,6 +9,12 @@ TODO
 MVP
 UI/UX
 
+fix hover css
+
+do login without redirecteing every time
+
+Constant of the day, always a user-entered constant
+
 NONMVP
 
 database content stuff
@@ -26,7 +32,6 @@ different search methods
     - only integers?
     - size radius?
 
-
 Highlight specific types of number
     - popular constants
         - e, pi, phi, euler's whatever
@@ -38,6 +43,7 @@ Add option to include new const definition on viewconst page
 LARGE SUBPROJECTS
 
 number line viewer
+
 social medialization
     order numbers by likes
     comments

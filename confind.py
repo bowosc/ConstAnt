@@ -22,7 +22,7 @@ class consts(db.Model):
 
     votes = db.relationship('constvotes', backref='post', lazy='dynamic')
     
-    def __init__(self, num, ref, name, creator, notes):
+    def __init__(self, num: float, ref: str, name:str = "Constant", creator:str = "The Universe", notes:str = None):
         self.num = num
         self.shortnum = shortenNum(num)
         self.ref = ref
@@ -30,6 +30,7 @@ class consts(db.Model):
         self.creator = creator
         self.notes = notes
         self.date = datetime.now()
+    
 
 class traits(db.Model):
     '''

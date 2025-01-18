@@ -2,13 +2,18 @@
 
 {% block body %}
 <body class="centered">
-    <h1> Create an account! </h1>
-    <form action="#" method="post">
-        <br><input class="newconstinput" name="username" type="username" autocomplete="off" placeholder="Username">
-        <br><input class="newconstinput" name="email" type="email" autocomplete="on" placeholder="Email">
-        <br><input class="newconstinput" name="password" type="password" autocomplete="off" placeholder="Password">
-        <br><input class="newconstinput" name="passworb" type="password" autocomplete="off" placeholder="Password, again.">
-        <br><input class="newconstinput" name="submit" type="submit">
+    <h1> Register an account! </h1>
+    <form class="defaultform" action="#" method="post"> <!-- Yes, this isn't a form for logging in. However, -->
+        <input class="txtform" name="username" type="username" autocomplete="off" placeholder="Username">
+        <br>
+        <input class="txtform" name="email" type="email" autocomplete="on" placeholder="Email">
+        <br>
+        <input class="txtform" name="password" type="password" autocomplete="off" placeholder="Password">
+        <br>
+        <input class="txtform" name="passworb" type="password" autocomplete="off" placeholder="Password, again.">
+        <br>
+        <input class="submitbutton" name="submit" type="submit">
     </form>
+
 </body>
 {% endblock %}
