@@ -55,7 +55,7 @@ app = Flask(__name__)
 
 app.secret_key = "nicetry"
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.sqlite3'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///constantdb.sqlite3'
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.permanent_session_lifetime = timedelta(minutes=60)
 
@@ -223,8 +223,12 @@ def login_user(name:str, pw:str) -> bool:
 
 
 if __name__ == "__main__":
+
+
+    confind.init_app(app)
+
     with app.app_context():
-        confind.db.init_app(app)
+        
         confind.db.create_all() # set up the stuff
         if not confind.does_table_exists(): # does the data inside the table exist? if not, make it
             carpentry.applyTable()

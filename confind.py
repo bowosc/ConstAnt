@@ -6,6 +6,9 @@ from sqlalchemy import func, DateTime, delete
 import hashing 
 
 db = SQLAlchemy()
+def init_app(app):
+    db.init_app(app)
+    
 
 class consts(db.Model):
     '''
