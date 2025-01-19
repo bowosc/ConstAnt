@@ -224,16 +224,16 @@ def login_user(name:str, pw:str) -> bool:
 
 if __name__ == "__main__":
 
-
     confind.init_app(app)
 
     with app.app_context():
         
         confind.db.create_all() # set up the stuff
+        
         if not confind.does_table_exists(): # does the data inside the table exist? if not, make it
             carpentry.applyTable()
 
         confind.init_default_user() # for dev purposes, not to be used in production
-        confind.db.session.commit # lock in
+        confind.db.session.commit() # lock in
 
     app.run(debug=True, host= '0.0.0.0', port=3000)
