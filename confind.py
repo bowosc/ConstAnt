@@ -1,10 +1,23 @@
 from datetime import datetime
 from sympy import Expr, evalf, sympify
+from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func, DateTime, delete
-from dbinit import db
+from flask import Flask
+from datetime import timedelta
+
 import hashing 
 
 
+
+app = Flask(__name__)
+
+app.secret_key = "nicetry"
+
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///constantdb.sqlite3'
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.permanent_session_lifetime = timedelta(minutes=60)
+
+db = SQLAlchemy(app)
 
 
 class consts(db.Model):
