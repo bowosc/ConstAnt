@@ -1,7 +1,7 @@
 from flask import Flask
 from flask import render_template, redirect, request, url_for, flash, session
 from datetime import timedelta
-
+from dbinit import db as datab
 import confind, input, carpentry
 
 '''
@@ -9,20 +9,17 @@ TODO
 MVP
 UI/UX
 
+bigger DB
+
 fix hover css
 
 do login without redirecteing every time
 
-Constant of the day, always a user-entered constant
+
+hide secret key lmao
 
 NONMVP
-
-database content stuff
-
-    expand DB to third level ops
-    expand DB with regular integers up to 2048? 10^6?
-    expand DB with more wacky numbers (from a dataset somewhere?)
-    4cos()
+Constant of the day, always a user-entered constant
 
 
 Accept latex as user expression input
@@ -90,7 +87,6 @@ def logout():
 @app.route("/about")
 def about():
     return render_template('about.html')
-
 
 @app.route("/", methods=['POST', 'GET'])
 def home():
@@ -199,7 +195,6 @@ def constvote(constid: int, action: str = 'toggle'):
 
     return str(confind.voteaction(constid, action, session["user"]))
 
-
 # this aint a route
 def login_user(name:str, pw:str) -> bool:
     '''
@@ -221,19 +216,18 @@ def login_user(name:str, pw:str) -> bool:
     return True
 
 
-
 if __name__ == "__main__":
 
-    confind.init_app(app)
+    datab.init_app(app)
 
     with app.app_context():
         
-        confind.db.create_all() # set up the stuff
+        datab.create_all() # set up the stuff
         
         if not confind.does_table_exists(): # does the data inside the table exist? if not, make it
             carpentry.applyTable()
 
         confind.init_default_user() # for dev purposes, not to be used in production
-        confind.db.session.commit() # lock in
+        datab.session.commit() # lock in
 
     app.run(debug=True, host= '0.0.0.0', port=3000)

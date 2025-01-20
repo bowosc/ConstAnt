@@ -1,13 +1,10 @@
 from datetime import datetime
 from sympy import Expr, evalf, sympify
-from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func, DateTime, delete
-
+from dbinit import db
 import hashing 
 
-db = SQLAlchemy()
-def init_app(appe):
-    db.init_app(appe)
+
 
 
 class consts(db.Model):
