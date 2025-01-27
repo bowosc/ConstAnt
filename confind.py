@@ -19,72 +19,82 @@ app.permanent_session_lifetime = timedelta(minutes=60)
 
 db = SQLAlchemy(app)
 
-
 class consts(db.Model):
     '''
     Database format for constants.
     '''
     _id = db.Column(db.Integer, primary_key=True)
     num = db.Column(db.Float)
-    shortnum = db.Column(db.String) # for display purposes only :)
+    shortnum = db.Column(db.String)  # for display purposes only :)
     ref = db.Column(db.String(255))
     name = db.Column(db.String(255))
-    creator = db.Column(db.Integer)
+    creator = db.Column(db.String(255))
     notes = db.Column(db.Text)
-    date = db.Column(DateTime)
+    date = db.Column(db.DateTime, default=datetime.utcnow)
 
-    votes = db.relationship('constvotes', backref='post', lazy='dynamic')
-    
-    def __init__(self, num: float, ref: str, name:str = "Constant", creator:str = "The Universe", notes:str = None):
+    votes = db.relationship('constvotes', back_populates='constant', lazy='dynamic')
+    traits = db.relationship('traits', back_populates='constant', lazy='dynamic')
+    solves = db.relationship('solves', back_populates='constant', lazy='dynamic')
+
+    def __init__(self, num: float, ref: str, name: str = "Constant", creator: str = "The Universe", notes: str = None):
         self.num = num
         self.shortnum = shortenNum(num)
         self.ref = ref
         self.name = name
         self.creator = creator
         self.notes = notes
-        self.date = datetime.now()
-    
+
 
 class traits(db.Model):
     '''
     Database format for traits that apply to a constant. 
     '''
     _id = db.Column(db.Integer, primary_key=True)
-    fid = db.Column(db.Integer) # id of const its attached to
-    traitname = db.Column(db.String(255)) # the actual trait, e.g. Prime, Natural, Irrational, ect.
+    fid = db.Column(db.Integer, db.ForeignKey('consts._id'))
+    traitname = db.Column(db.String(255))  # The actual trait, e.g., Prime, Natural, Irrational, etc.
+
+    constant = db.relationship('consts', back_populates='traits')
 
     def __init__(self, fid, traitname):
         self.fid = fid
         self.traitname = traitname
+
 
 class solves(db.Model):
     '''
     Database format for expressions that evaluate to a constant.
     '''
     _id = db.Column(db.Integer, primary_key=True)
-    fid = db.Column(db.Integer) # id of const its attached to
-    sol = db.Column(db.String(255)) # equation
-    date = db.Column(DateTime, default=datetime.now())
+    fid = db.Column(db.Integer, db.ForeignKey('consts._id'))
+    sol = db.Column(db.String(255))  # Equation
+    date = db.Column(db.DateTime, default=datetime.utcnow)
+
+    constant = db.relationship('consts', back_populates='solves')
 
     def __init__(self, fid, sol):
         self.fid = fid
         self.sol = sol
+
 
 class constvotes(db.Model):
     '''
     Database format for votes on constants.
     '''
     _id = db.Column(db.Integer, primary_key=True)
-    userid = db.Column('userid', db.Integer, db.ForeignKey('users._id'))
-    constid = db.Column('constid', db.Integer, db.ForeignKey('consts._id'))
+    userid = db.Column(db.Integer, db.ForeignKey('users._id'))
+    constid = db.Column(db.Integer, db.ForeignKey('consts._id'))
     upvote = db.Column(db.Boolean)
     super = db.Column(db.Boolean)
+
+    user = db.relationship('users', back_populates='voted')
+    constant = db.relationship('consts', back_populates='votes')
 
     def __init__(self, userid, constid):
         self.userid = userid
         self.constid = constid
-        self.upvote = None #[NOTE: DEPRECIATED] false if downvote, true if upvote. 
-        self.super = False # unused rn
+        self.upvote = None  # Deprecated: False if downvote, True if upvote.
+        self.super = False  # Currently unused
+
 
 class users(db.Model):
     '''
@@ -95,19 +105,13 @@ class users(db.Model):
     pw = db.Column(db.String(255))
     email = db.Column(db.String(255))
     notes = db.Column(db.Text)
-    isadmin = db.Column(db.Boolean()) # currently unused
-    isbanned = db.Column(db.Boolean()) # currently unused
-    isverified = db.Column(db.Boolean()) # currently unused
-    creationdate = db.Column(DateTime) # currently unused
+    isadmin = db.Column(db.Boolean, default=False)  # Currently unused
+    isbanned = db.Column(db.Boolean, default=False)  # Currently unused
+    isverified = db.Column(db.Boolean, default=False)  # Currently unused
+    creationdate = db.Column(db.DateTime, default=datetime.utcnow)  # Currently unused
 
-    voted = db.relationship(
-        'constvotes',
-        foreign_keys='constvotes.userid', 
-        backref='users', 
-        lazy='dynamic'
-        )
+    voted = db.relationship('constvotes', back_populates='user', lazy='dynamic')
 
-    # currently only set up for consts, but named more ambiguously so that it could be expanded later
     def upvote_post(self, const: consts) -> None:
         if not self.has_upvoted_post(const):
             upvote = constvotes(userid=self._id, constid=const._id)
@@ -117,18 +121,16 @@ class users(db.Model):
         if self.has_upvoted_post(const):
             constvotes.query.filter_by(userid=self._id, constid=const._id).delete()
 
-    def has_upvoted_post(self, const: consts) -> None:
-        return constvotes.query.filter(constvotes.userid == self._id, constvotes.constid == const._id).count() > 0
-    
+    def has_upvoted_post(self, const: consts) -> bool:
+        return constvotes.query.filter(
+            constvotes.userid == self._id, constvotes.constid == const._id
+        ).count() > 0
+
     def __init__(self, name, pw, email):
         self.name = name
         self.pw = hashing.generateHash(pw)
         self.email = email
         self.notes = "I'm new here!"
-        self.isadmin = False
-        self.isbanned = False
-        self.isverified = False
-        self.creationdate = datetime.now()
 
 
 
@@ -281,7 +283,8 @@ def confind(whatnum:float = False, whatref:str = False, whatname:str = False, wh
         results = consts.query.filter_by(_id = whatid).first()
     else:
         return 'No arguments parsed.'
-
+    
+        
     if not results:
         return 'No results for query.'
     
@@ -313,6 +316,26 @@ def traitfind(whatid: int) -> list[traits]:
     traitlist = traits.query.filter_by(fid=whatid).all()
     return traitlist
 
+def hotconsts(amount: int) -> list[consts, int]:
+    '''
+    Returns top <amount> consts with the most votes.
+    Return format:[[const object, amount of votes], [const object, amount of votes], [const object, amount of votes]]
+    
+    '''
+    results = (
+        db.session.query(
+            consts,
+            func.count(constvotes._id).label('vote_count')
+        )
+        .outerjoin(constvotes, consts._id == constvotes.constid)
+        .group_by(consts._id)
+        .order_by(func.count(constvotes._id).desc())
+        .limit(amount)
+        .all()
+    ) 
+
+
+    return results
 
 def does_table_exists():
     '''

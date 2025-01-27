@@ -14,8 +14,7 @@ bigger DB
 
 fix hover css
 
-do login without redirecteing every time
-
+better input monitoring, check curse words
 
 hide secret key lmao
 

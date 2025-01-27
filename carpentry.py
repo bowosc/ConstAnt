@@ -22,7 +22,7 @@ def prepExpressionString(expression: tuple[float,str]) -> None:
     Preps the string part of the expression data thing IN PLACE into a more user-friendly version.
     '''
     expression[1] = expression[1].replace('E', 'e')
-    return
+    return 
 
 def applyUnaryOps(sub: str) -> tuple[float,str]:
     '''
@@ -98,6 +98,8 @@ def generateBoringTable() -> list[tuple[float, str]]:
         strtable.extend(applyUnaryOps(i))
         print(f"Unary - extended {i}.")
 
+
+
     alttable = []
     for a in strtable:
         for b in strtable:
@@ -105,12 +107,26 @@ def generateBoringTable() -> list[tuple[float, str]]:
             print(f"Binary - extended {a}, {b}.")
 
     strtable.extend(alttable)
-    for i in strtable:
-        i=prepExpressionString(i)
 
+    alttable = []
+    
+    
+    for a in strtable:
+        for b in strtable:
+            print(len(strtable))
+            print(len(alttable))
+            alttable.extend(applyBinaryOps(a, b))
+            print(f"Second Round Binary - extended {a}, {b}.")
+
+    strtable.extend(alttable)
 
     for i in range(0, 2049):
         strtable.append([i, f'{i}'])
+
+    for i in strtable:
+        i = prepExpressionString(i)
+
+
         
 
     return strtable
@@ -125,7 +141,7 @@ def generateCoolTable() -> list[tuple[consts, list[str]]]:
         [const3, [tag1, tag2, tag3]]
     ]
     '''
-    # DO NOT PERFORM ANY OPERATIONS ON THESE! IT WILL END UP RESULTING IN DUPLICATES!
+    # DO NOT PERFORM ANY OPERATIONS ON THESE! IT WILL RESULT IN DUPLICATES!
     PERFECT_NUMBERS = []
     MERSENNE_PRIMES = []
 
