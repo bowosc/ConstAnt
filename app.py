@@ -8,19 +8,29 @@ from confind import app
 '''
 TODO
 MVP
+
+Cover page
+
 UI/UX
 
 bigger DB
-
-fix hover css
 
 better input monitoring, check curse words
 
 hide secret key lmao
 
-NONMVP
-Constant of the day, always a user-entered constant
 
+NONMVP
+
+
+Aram says use Firebase for user auth
+
+
+
+
+DB schema idea: set base dataset in a txt file or something, users can add whole datasets if in right format (json?).
+
+Constant of the day, always a user-entered constant
 
 Accept latex as user expression input
 
@@ -85,24 +95,26 @@ def about():
 @app.route("/", methods=['POST', 'GET'])
 def home():
     query = None
-    traits = None
+    hotconsts = confind.hotconsts(3)
+    topconsts = confind.hotconsts(12)
+    
     if request.method == 'POST':
-        if request.form['searchbar'] != None:
+        if request.form['searchbar'] != None and request.form['searchbar'] != "":
 
             results = confind.confind(whatnum = request.form['searchbar'])
-
+            query = request.form['searchbar']
             if isinstance(results, str): # if confind finds no results
                 #flash(results, 'searcherror')
                 results = None
-                return redirect(url_for("home"))
+                return render_template("home.html", results=results, query=query)
 
-            query = request.form['searchbar']
+            
 
         else:
             results = None
     else:
         results = None
-    return render_template('home.html', results=results, query=query)
+    return render_template('home.html', results=results, query=query, hotconsts=hotconsts, topconsts=topconsts)
 
 @app.route("/register", methods=['POST', 'GET'])
 def register():

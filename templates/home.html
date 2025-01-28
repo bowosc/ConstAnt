@@ -5,6 +5,7 @@
 <body>
     <br>
     <div class="centered">
+        {% if results %}
         <div class="maintitle"> ConstAnt </div>
         <div class="searchbarBox">
                 <form action="#" method="post">
@@ -13,13 +14,69 @@
                     <button type="submit"><i class="fa fa-search"></i></button>
                 </div>
             </form>
-            
         </div>
+        {% else %}
+        <div style="margin-top: 100px; margin-bottom: 100px;">
+            <div class="maintitle"> ConstAnt </div>
+            <div class="searchbarBox">
+                    <form action="#" method="post">
+                    <input name="searchbar" type="text" autocomplete="off" placeholder="Favorite number?">
+                    <div class="buttone">
+                        <button type="submit"><i class="fa fa-search"></i></button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+
 
         {% if results and query %}
             <h3>Results for {{query}}:</h3>
         {% elif query %}
-            <h3>No results for {{query}}.</h3>
+            <h2>No results for {{query}}.</h2>
+        {% endif %}
+        {% if not results %}
+            <div class="landingcolumnwrapper">
+                <div class="topomainwrapper">
+                    <div class="hotconstantswrapper">
+                            <h2>Hot constants:</h2>
+                        {% for tup in hotconsts %}
+                        <a class="numlink" href="/viewconst/{{tup[0]._id}}">
+                        <div class="numbox constbox">
+                            <p>
+                            <span class="number">{{tup[0].shortnum}}</span>
+                                <br>
+                                {% if tup[0].name %}
+                                <span class="constname">{{tup[0].name}}</span> 
+                                {% else %}
+                                <span class="constname">{{tup[0].ref}}</span> 
+                                {% endif %}
+                            </p>                            
+                        </div>
+                        </a>
+                        {% endfor %}
+                    </div>
+                    <div class="rightbar">
+                        <h2>Most Popular</h2>
+                        {% for tup in topconsts %}
+                        <a class="numlink" href="/viewconst/{{tup[0]._id}}">
+                            <div class="popconst">{{tup[0].shortnum}} | {{tup[1]}}</div>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <br><br>
+                <div class="big-textbox" style="margin-bottom: 60px;">
+                    <div class="title">What is ConstAnt?</div>
+                    Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem 
+                    Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum 
+                    Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem 
+                    Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum 
+                    Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem 
+                    Ipsum Lorem Ipsum Lorem Ipsum 
+                </div>
+            </div>
         {% endif %}
         <div class="numboxcolumnwrapper">
 

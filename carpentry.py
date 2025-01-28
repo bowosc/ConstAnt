@@ -6,7 +6,7 @@ from confind import users, solves, consts, constvotes, traits, db
 # [value: float, expression: str]
 
 PREGEN_CONST_CREATOR = "Server"
-PREGEN_CONST_NAME = "Automatically generated constant"
+PREGEN_CONST_NAME = ""
 PREGEN_CONST_NOTES = ""
 
 
@@ -46,6 +46,7 @@ def applyUnaryOps(sub: str) -> tuple[float,str]:
             expression = f'{i}({sub})'
 
         if Expr.evalf(sympify(expression)) > 0:
+            
             result.append(formatForTable(expression))
 
 
@@ -96,14 +97,18 @@ def generateBoringTable() -> list[tuple[float, str]]:
 
     for i in CONSTANTS:
         strtable.extend(applyUnaryOps(i))
+        
         print(f"Unary - extended {i}.")
 
 
+        # UNARY OPS SHOULD take formatForTable()'ed datas
 
+
+    
     alttable = []
-    for a in strtable:
-        for b in strtable:
-            alttable.extend(applyBinaryOps(a, b))
+    for a in CONSTANTS:
+        for b in CONSTANTS:
+            alttable.extend(applyBinaryOps(formatForTable(a), formatForTable(b)))
             print(f"Binary - extended {a}, {b}.")
 
     strtable.extend(alttable)
@@ -111,22 +116,21 @@ def generateBoringTable() -> list[tuple[float, str]]:
     alttable = []
     
     
-    for a in strtable:
-        for b in strtable:
-            print(len(strtable))
+    '''for a in strtable:
+        for b in CONSTANTS:
+            b = formatForTable(b)
+            print(len(strtable)*len(CONSTANTS))
             print(len(alttable))
             alttable.extend(applyBinaryOps(a, b))
             print(f"Second Round Binary - extended {a}, {b}.")
-
     strtable.extend(alttable)
-
-    for i in range(0, 2049):
-        strtable.append([i, f'{i}'])
+    alttable = []
+    '''
 
     for i in strtable:
         i = prepExpressionString(i)
 
-
+    print(strtable)
         
 
     return strtable
@@ -172,7 +176,7 @@ def applyTable():
     for i in boringvals:
         b = consts(num=i[0], ref=i[1], name=PREGEN_CONST_NAME, creator=PREGEN_CONST_CREATOR, notes=PREGEN_CONST_NOTES) 
         db.session.add(b)
-        print(f'{i[1]} = {i[0]}')
+        #print(f'{i[1]} = {i[0]}')
 
     db.session.commit()
 
@@ -233,4 +237,4 @@ def applyTable():
 
 
 if __name__ == "__main__":
-    print("Try running main.py!")
+    print("Try running app.py!")

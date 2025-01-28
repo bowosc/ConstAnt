@@ -44,7 +44,6 @@ class consts(db.Model):
         self.creator = creator
         self.notes = notes
 
-
 class traits(db.Model):
     '''
     Database format for traits that apply to a constant. 
@@ -58,7 +57,6 @@ class traits(db.Model):
     def __init__(self, fid, traitname):
         self.fid = fid
         self.traitname = traitname
-
 
 class solves(db.Model):
     '''
@@ -74,7 +72,6 @@ class solves(db.Model):
     def __init__(self, fid, sol):
         self.fid = fid
         self.sol = sol
-
 
 class constvotes(db.Model):
     '''
@@ -94,7 +91,6 @@ class constvotes(db.Model):
         self.constid = constid
         self.upvote = None  # Deprecated: False if downvote, True if upvote.
         self.super = False  # Currently unused
-
 
 class users(db.Model):
     '''
@@ -333,6 +329,10 @@ def hotconsts(amount: int) -> list[consts, int]:
         .limit(amount)
         .all()
     ) 
+
+    print(results)
+
+
 
 
     return results

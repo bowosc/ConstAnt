@@ -33,6 +33,85 @@ a {
 
 
 
+.landingcolumnwrapper {
+    margin: auto;
+    width: 70%;
+    min-width: 900px;
+}
+
+.topomainwrapper {
+    box-sizing: border-box;
+    display: flex;
+    max-height: 1000px;
+}
+
+.rightbar {
+    box-sizing: border-box;
+    width: 30%;
+    height: 100%;
+    text-align: center;
+}
+
+.rightbar .popconst {
+    margin-top: 5px;
+    padding: 5px;
+    font-size: 30px;
+    color: white;
+    width: 100%;
+    min-width: 235px;
+
+    background: rgba( 20, 20, 58, 0.25 );
+    box-shadow: 0 8px 32px 0 rgba( 31, 38, 135, 0.37 );
+    backdrop-filter: blur( 4px );
+    -webkit-backdrop-filter: blur( 4px );
+    border-radius: 10px;
+    border: 1px solid rgba( 255, 255, 255, 0.18 );
+}
+
+.hotconstantswrapper {
+    width: 70%; 
+}
+
+.hotconstantswrapper .constbox {
+    max-height: 300px;
+    margin: 10px;
+    text-align: center;
+    box-sizing: border-box;
+    
+}
+
+.big-textbox {
+    width: 100%;
+    background: rgba( 20, 20, 58, 0.25 );
+    box-shadow: 0 8px 32px 0 rgba( 31, 38, 135, 0.37 );
+    backdrop-filter: blur( 4px );
+    -webkit-backdrop-filter: blur( 4px );
+    border-radius: 10px;
+    border: 1px solid rgba( 255, 255, 255, 0.18 );
+
+    text-align: left;
+
+
+    padding:20px;
+
+
+    font-size: 20px;
+
+    color: white;
+    overflow: hidden;
+
+}
+
+.big-textbox .title{
+    font-size:30px;
+    text-align: center;
+    padding: 10px;
+}
+
+
+
+
+
 
 
 
@@ -224,19 +303,22 @@ a {
 
 
 .votebutton {
-    width: 10%;
-    height: 30px;
+    width: 100%;
+    height: 100%;
     float: auto;
+    box-sizing: border-box;
     font-size: large;
     font-weight: bold;
+    cursor: pointer;
+    
 }
 
 .voted_button {
-    background-color: rgb(30, 213, 112);
+    background-color: rgb(0, 245, 110);
 }
 
 .unvoted_button {
-    background-color: rgb(190, 190, 190);
+    background-color: rgb(204, 31, 31);
 }
 
 
@@ -312,12 +394,66 @@ a {
 
 
 
+.constinfo {
+    box-sizing: border-box;
+    width: 90%;
+    margin: auto;
+    display: grid;
+    text-align: center;
+    grid-template-areas:
+        "infoheader infoheader infoheader infovote"
+        "infotraits infotraits infonotes infonotes"
+        "infocomments infocomments infosolves infosolves";
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 10px;
+    padding: 10px;
+    grid-template-rows: repeat(3, minmax(100px, auto)); 
+    margin-bottom: 50px;
+}
 
+.constinfo div {
+    font-size: 25px;
+    padding: 10px;
+    background-color: rgb(117, 75, 195);
+    word-wrap: break-word;
+}
 
+.constinfo .infovote{
+    grid-area: infovote;
+    padding: 0px;
+    
+}
 
+.constinfo .infoheader{
+    grid-area: infoheader;
+    
+}
 
+.constinfo .infoheader .title{
+    font-size: 70px;
+    
+}
 
+.constinfo .infoheader .subtitle{
+    font-size: 30px;
+}
 
+.constinfo .infosolves{
+    grid-area: infosolves;
+}
+
+.constinfo .infonotes{
+    grid-area: infonotes;
+}
+
+.constinfo .infotraits{
+    grid-area: infotraits;
+}
+
+.constinfo .infocomments{
+    padding-top: 40px;
+    grid-area: infocomments;
+}
 
 
 
