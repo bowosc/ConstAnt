@@ -1,6 +1,5 @@
 from flask import Flask
 from flask import render_template, redirect, request, url_for, flash, session
-from datetime import timedelta
 
 import confind, input, carpentry
 from confind import app
@@ -9,30 +8,22 @@ from confind import app
 TODO
 MVP
 
-Cover page
-
-UI/UX
-
+Graphic Design :P
 bigger DB
 
-better input monitoring, check curse words
+better input monitoring, check:
+- curses/slurs
 
 hide secret key lmao
 
 
 NONMVP
 
-
-Aram says use Firebase for user auth
-
-
-
-
 DB schema idea: set base dataset in a txt file or something, users can add whole datasets if in right format (json?).
 
 Constant of the day, always a user-entered constant
 
-Accept latex as user expression input
+Accept LaTeX
 
 different search methods
     - consider decimal?

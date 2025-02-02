@@ -2,6 +2,7 @@ import confind
 from sympy import Expr, sympify
 import re
 
+DISALLOWEDWORDS = ["poopoohead"]
 
 
 def isProfane(text: str) -> bool:
@@ -14,7 +15,6 @@ def isProfane(text: str) -> bool:
 
     Returns False is no phrases are found, and returns the phrase if one is found.
     '''
-    DISALLOWEDWORDS = ["poopoohead"]
 
 
     text = re.sub(r'[^A-Za-z]+', '', text) # keep only english letters
@@ -101,7 +101,6 @@ def problemsWithNewConst(userid:int, constname:str, expression:str, isLatex: boo
     return False
 
 
-
 def problemsWithNewUser(username: str, useremail: str, userpass: str) -> bool | str:
     '''
     [Note: should be expanded.]
@@ -114,6 +113,8 @@ def problemsWithNewUser(username: str, useremail: str, userpass: str) -> bool | 
 
     Returns False if the user is OK, and returns an error message if there's something wrong.
     '''
+    passwordOK = r'^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$'
+
 
     if is_email_valid(useremail) != True:
         return "Invalid email address!"
@@ -123,6 +124,8 @@ def problemsWithNewUser(username: str, useremail: str, userpass: str) -> bool | 
         return "Your username cannot be longer than 24 characters."
     elif len(userpass) > 36:
         return "Your password cannot be longer than 24 characters."
+    elif not re.match(passwordOK, userpass):
+        return "Your password should include a minimum of eight characters, and least one letter, number, and special character."
     
     em = confind.users.query.filter_by(email=useremail).first()
     if em:
