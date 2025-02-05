@@ -4,14 +4,15 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func, DateTime, delete
 from flask import Flask
 from datetime import timedelta
-
+import os
 import hashing 
 
 
 
 app = Flask(__name__)
 
-app.secret_key = "nicetry"
+app.secret_key = os.getenv("FLASKSECRETKEY", "")
+print(os.getenv("FLASKSECRETKEY", ""))
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///constantdb.sqlite3'
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
