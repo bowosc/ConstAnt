@@ -1,6 +1,6 @@
 from sympy import Expr, sympify
 
-from confind import users, solves, consts, constvotes, traits, db
+from confind import users, solves, consts, constvotes, traits, db, does_table_exists
 
 # expression data format primer:
 # [value: float, expression: str]
@@ -129,7 +129,7 @@ def generateBoringTable() -> list[tuple[float, str]]:
     
 
     for i in strtable:
-        print("Prepping string for {i}")
+        print(f"Prepping string for {i}")
         i = prepExpressionString(i)
 
     print(strtable)
@@ -271,4 +271,7 @@ def applyTable():
 
 
 if __name__ == "__main__":
-    print("Try running app.py!")
+    if not does_table_exists(): # does the data inside the table exist? if not, make it
+        applyTable()
+    print("Table generated!")
+    print("Now, try running app.py!")
