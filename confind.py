@@ -1,7 +1,7 @@
 from datetime import datetime
 from sympy import Expr, evalf, sympify
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import func, DateTime, delete
+from sqlalchemy import func, DateTime, delete, desc, asc, String
 from flask import Flask
 from datetime import timedelta
 import os
@@ -12,7 +12,6 @@ import hashing
 app = Flask(__name__)
 
 app.secret_key = os.getenv("FLASKSECRETKEY", "")
-print(os.getenv("FLASKSECRETKEY", ""))
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///constantdb.sqlite3'
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
@@ -142,6 +141,9 @@ def shortenNum(num: float) -> str:
         parts = num.split("e")
         correctlen = 13 - len(parts[1])
         return parts[0][:correctlen] + "e" + parts[1] # janky but functional :)
+    if num[12] == ".":
+        return num[:12]
+        
     else:
         return num[:13]
     
@@ -211,7 +213,7 @@ def verify_login(thename: str, thepw: str) -> users | str: # this seems too simp
 
 def add_user_const(userid:int, constname:str, expression:str, isLatex: bool = False, notes:str = None) -> int:
     '''
-    Adds a user const to the database.
+    Directly adds a user const to the database.
     DOES NOT DO ANY KIND OF CHECKS BEFOREHAND, BE SURE TO PREP INPUT!!!
     Probably use problemsWithNewConst() from input.py to do this. 
 
@@ -229,6 +231,7 @@ def add_user_const(userid:int, constname:str, expression:str, isLatex: bool = Fa
     theuser = users.query.filter_by(_id = userid).first()
     b = consts(value, expression, constname, theuser.name, notes)
     db.session.add(b)
+
     bingus = consts.query.filter_by(num = value).first()
     s = solves(bingus._id, bingus.ref)
     db.session.add(s)
@@ -236,6 +239,9 @@ def add_user_const(userid:int, constname:str, expression:str, isLatex: bool = Fa
     db.session.commit()
     print(f"Added constant {b.name}: {b.ref} = {b.num}. Added by user {b.creator}. Notes: {b.notes}")
     return b._id
+
+
+
 
 def find_user(userid: int) -> users:
     '''
@@ -251,15 +257,13 @@ def find_user(userid: int) -> users:
     return user
 
 # the big one
-def confind(whatnum:float = False, whatref:str = False, whatname:str = False, whatcreator:str = False, whatid:int = False) -> list[consts]:
+def confind(whatnum:float = False, whatname:str = False, whatid:int = False, onlyInts: bool = False) -> list[consts]:
     '''
     Returns a list of results matching the query entered, searching the consts table.
     As of now, confind() should only be used with one search argument at a time.
 
     whatnum: Value of the const
-    whatref: Expression that results in the const's value (just use a calculator bro)
     whatname: Name of the const searched
-    whatcreator: Creator of the const searched
     whatid: Id of the const searched
 
     '''
@@ -268,25 +272,40 @@ def confind(whatnum:float = False, whatref:str = False, whatname:str = False, wh
     # This should be expanded to a page-by-page system where the user can grab the next fifty more easily.
     results = None
 
-    if whatref:
-        results = consts.query.filter(consts.ref.contains(whatref)).order_by(consts.creator).limit(lim).all()
-    elif whatname:
-        results = consts.query.filter(consts.name.contains(whatname)).order_by(consts.creator).limit(lim).all()
-    elif whatcreator:
-        results = consts.query.filter(consts.creator.contains(whatcreator)).order_by(consts.creator).limit(lim).all()
-    elif whatnum:
-        results = consts.query.filter(consts.num.startswith(whatnum)).order_by(consts.num).limit(lim).all() # this is the one used most 
-    elif whatid:
-        results = consts.query.filter_by(_id = whatid).first()
+    if onlyInts:
+        if whatname:
+            results = consts.query.filter(consts.name.contains(whatname)).order_by(consts.creator).limit(lim).all()
+        elif whatnum:
+            results = (
+                db.session.query(consts)
+                .join(traits)
+                .filter(traits.traitname == "Integer")
+                .filter(consts.num.startswith
+                        (whatnum))
+                .order_by(asc(consts.num))  # Sort using the original FLOAT value
+                .all()
+            )
+            print(results)
+            #db.session.query(consts).join(traits).filter(consts.num.startswith(whatnum)).order_by(consts.num).filter(traits.traitname == "Integer").limit(lim).all()
+        elif whatid:
+            results = consts.query.filter_by(_id = whatid).first()
+        else:
+            return 'No arguments parsed.'
     else:
-        return 'No arguments parsed.'
-    
-        
+        if whatname:
+            results = consts.query.filter(consts.name.contains(whatname)).order_by(consts.creator).limit(lim).all()
+        elif whatnum:
+            results = consts.query.filter(consts.num.startswith(whatnum)).order_by(consts.num).limit(lim).all() # this is the one used most 
+        elif whatid:
+            results = consts.query.filter_by(_id = whatid).first()
+        else:
+            return 'No arguments parsed.'
+
     if not results:
         return 'No results for query.'
     
-    
     return results
+
 
 def solfind(whatid:int) -> list[solves]:
     '''
@@ -311,6 +330,7 @@ def traitfind(whatid: int) -> list[traits]:
     '''
         
     traitlist = traits.query.filter_by(fid=whatid).all()
+    print(traitlist)
     return traitlist
 
 def hotconsts(amount: int) -> list[consts, int]:
@@ -330,11 +350,6 @@ def hotconsts(amount: int) -> list[consts, int]:
         .limit(amount)
         .all()
     ) 
-
-    print(results)
-
-
-
 
     return results
 

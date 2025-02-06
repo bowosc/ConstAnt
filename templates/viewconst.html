@@ -57,10 +57,11 @@
 
         <div class="infotraits">
             {% if traits %}
-                {% for trait in traits%}
+            <p>
+                {% for trait in traits %}
                     {{trait.traitname}}
-                    <br>
                 {% endfor %}
+            </p>
             {% else %}
             <h3>This Constant has no traits yet.</h3>
             {% endif %}
@@ -78,7 +79,6 @@
 
         <div class="infosolves">
             <h2>Methods:</h2>
-            infosolves
             {% for solve in soldata %}
                 <p>{{ solve.sol }}</p>
             {% endfor %}

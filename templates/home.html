@@ -19,7 +19,7 @@
         <div style="margin-top: 100px; margin-bottom: 100px;">
             <div class="maintitle"> ConstAnt </div>
             <div class="searchbarBox">
-                    <form action="#" method="post">
+                <form action="#" method="post">
                     <input name="searchbar" type="text" autocomplete="off" placeholder="Favorite number?">
                     <div class="buttone">
                         <button type="submit"><i class="fa fa-search"></i></button>
@@ -34,8 +34,7 @@
             <h3>Results for {{query}}:</h3>
         {% elif query %}
             <h2>No results for {{query}}.</h2>
-        {% endif %}
-        {% if not results %}
+        {% elif not results %}
             <div class="landingcolumnwrapper">
                 <div class="topomainwrapper">
                     <div class="hotconstantswrapper">

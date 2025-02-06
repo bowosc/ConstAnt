@@ -9,12 +9,10 @@ TODO
 MVP
 
 Graphic Design :P
-bigger DB
+
 
 better input monitoring, check:
 - curses/slurs
-
-hide secret key lmao
 
 
 NONMVP
@@ -34,6 +32,10 @@ Highlight specific types of number
     - popular constants
         - e, pi, phi, euler's whatever
     - primes
+    - integers
+    - rational
+    - irrational
+    - "stupid numbers"
 
 Add option to include new const definition on viewconst page
 
@@ -69,12 +71,10 @@ def inject_user():
 def logout():
     '''
     Removes user from session. 
-    
-    Bye!
     '''
     if 'user' in session:
         session.pop("user")
-        flash("Logged out. Come back soon!", 'success')
+        flash("You have been logged out. Come back soon!", 'success')
     else:
         flash("You aren't logged in!", "usererror")
     return redirect(request.referrer)
@@ -90,10 +90,14 @@ def home():
     topconsts = confind.hotconsts(12)
     
     if request.method == 'POST':
-        if request.form['searchbar'] != None and request.form['searchbar'] != "":
+        query = request.form['searchbar']
+        if len(query) > 1:
+            while query[0] == '0' and query[1] != ".":
+                query = query[1:] # no reason to search 000001 but this makes the search work better when you do
+        
+        if query != None and query != "":
 
-            results = confind.confind(whatnum = request.form['searchbar'])
-            query = request.form['searchbar']
+            results = confind.confind(whatnum = query, onlyInts=True)
             if isinstance(results, str): # if confind finds no results
                 #flash(results, 'searcherror')
                 results = None
@@ -173,10 +177,6 @@ def viewconst(id: int):
     
     soldata = confind.solfind(id)
     traits = confind.traitfind(id)
-    if not traits:
-        print("notrait")
-    for trait in traits:
-        print(trait.traitname)
 
     return render_template('viewconst.html', result = result, soldata = soldata, traits = traits)
 

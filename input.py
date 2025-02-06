@@ -2,8 +2,7 @@ import confind
 from sympy import Expr, sympify
 import re
 
-DISALLOWEDWORDS = ["poopoohead"]
-
+DISALLOWEDWORDS = ["butthead"]
 
 def isProfane(text: str) -> bool:
     '''
@@ -25,7 +24,6 @@ def isProfane(text: str) -> bool:
         
     return False
 
-
 def is_email_valid(email: str) -> bool:
     '''
     Uses a nice little regex pile to quickly check if an email seems email-ish. 
@@ -43,7 +41,6 @@ def is_email_valid(email: str) -> bool:
         return True
     else:
         return False
-
 
 def problemsWithNewConst(userid:int, constname:str, expression:str, isLatex: bool, notes:str) -> bool | str:
     '''
@@ -67,14 +64,12 @@ def problemsWithNewConst(userid:int, constname:str, expression:str, isLatex: boo
         return "Nice try, but try and use nicer language in your notes."
     
     try: 
-        expressionResult = Expr.evalf(sympify(expression))
-        # foreshadowing
+        expressionResult = Expr.evalf(sympify(expression)) # foreshadowing
     except:
         return "I can't evaluate this expression!"
     
     try:
-        float(expressionResult) 
-        # elegant?
+        float(expressionResult) # elegant?
     except:
         return "This expression doesn't evaluate to a number!"
 
@@ -85,6 +80,7 @@ def problemsWithNewConst(userid:int, constname:str, expression:str, isLatex: boo
     elif confind.consts.query.filter_by(ref=expression).first():
         return "This constant has already been defined!"
     
+
     preexistingConst = confind.consts.query.filter_by(num=expressionResult).first()
     if preexistingConst:
         if not confind.solves.query.filter_by(sol=expression).first():
@@ -99,7 +95,6 @@ def problemsWithNewConst(userid:int, constname:str, expression:str, isLatex: boo
    
 
     return False
-
 
 def problemsWithNewUser(username: str, useremail: str, userpass: str) -> bool | str:
     '''
