@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block body %}
+<body>
+    <div class="constinfo">
+        <div class="infoheader">
+            <div class="title">{{ result.num }}</div>
+            <div class="subtitle">
+                {% if result.name %}
+                    {{ result.name }}
+                {% else %}
+                    Unnamed Constant
+                {% endif %}
+                    | by {{ result.creator }}
+            </div>
+        </div>
+
+
+            {% if user.has_upvoted_post(result) %}
+            <button onclick="voteOnPost()" id="{{result._id}}" class="votebutton infovote voted_button">
+                [{{result.votes.count()}}]
+            </button>
+            {% else %}
+            <button onclick="voteOnPost()" id="{{result._id}}" class="votebutton infovote unvoted_button">
+                [{{result.votes.count()}}]
+            </button>
+            {% endif %}
+            
+        {% if "user" in session %}
+            <script>
+                function voteOnPost() {
+                    var button = event.target;
+                    var element_id = button.id;
+                    index = element_id;
+                    
+                    var elm = document.getElementById(index);
+                    elm.classList.toggle("unvoted_button");
+                    elm.classList.toggle("voted_button");
+
+                    fetch(`/constvote/${index}/toggle`)
+                        .then(function(response) {
+                            return response.text();
+                        }).then(function(votescount) {
+                            document.getElementById(index).innerText = "[" + votescount + "]";
+                        });
+                        
+                }
+            </script>
+        {% else %}
+            <script>
+                function voteOnPost() {
+                    window.location.href = "/login";
+                } 
+            </script>
+        {% endif %}
+
+
+        <div class="infotraits">
+            {% if traits %}
+            <p>
+                {% for trait in traits %}
+                    {{trait.traitname}}
+                {% endfor %}
+            </p>
+            {% else %}
+            <h3>This Constant has no traits yet.</h3>
+            {% endif %}
+        </div>
+        
+        <div class="infonotes">
+            {% if result.notes %}
+            <h2>Notes:</h2>
+            <h3>{{result.notes}}</h3>
+            <br>
+            {% else %}
+            <h3>This Constant has no notes yet.</h3>
+            {% endif %}
+        </div>
+
+        <div class="infosolves">
+            <h2>Methods:</h2>
+            {% for solve in soldata %}
+                <p>{{ solve.sol }}</p>
+            {% endfor %}
+        </div>
+
+        <div class="infocomments">
+            [Comments section is currently disabled]
+        </div>
+    </div>
+</body>
+{% endblock %}
